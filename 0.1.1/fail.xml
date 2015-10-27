@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<fail>
+	<air/>
+	<drop z="10" diameter="0.001"/>
+	<drop z="10" diameter="0.002"/>
+	<drop z="10" diameter="0.003"/>
+	<drop z="10" diameter="0.004"/>
+	<drop z="10" diameter="0.005"/>
+</fail>

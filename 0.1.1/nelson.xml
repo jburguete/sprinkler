@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<trajectory>
+	<air/>
+	<drop x="1.52" z="-0.1335" velocity="10.26" angle="-8.54" diameter="0.0010"/>
+	<drop x="1.52" z="-0.1335" velocity="10.26" angle="-8.54" diameter="0.0040"/>
+</trajectory>
