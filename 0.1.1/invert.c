@@ -11,48 +11,33 @@
 #include "drop.h"
 
 #define XML_AIR			(const xmlChar*)"air"
+  ///< air XML label.
 #define XML_ANGLE		(const xmlChar*)"angle"
+  ///< angle XML label.
 #define XML_CFL			(const xmlChar*)"cfl"
+  ///< cfl XML label.
 #define XML_DIAMETER	(const xmlChar*)"diameter"
+  ///< diameter XML label.
+#define XML_DRAG		(const xmlChar*)"drag"
+  ///< drop XML label.
 #define XML_DROP		(const xmlChar*)"drop"
+  ///< drop XML label.
 #define XML_HUMIDITY	(const xmlChar*)"humidity"
+  ///< humidity XML label.
 #define XML_PRESSURE	(const xmlChar*)"pressure"
+  ///< pressure XML label.
 #define XML_TEMPERATURE	(const xmlChar*)"temperature"
+  ///< temperature XML label.
 #define XML_TRAJECTORY	(const xmlChar*)"trajectory"
+  ///< trajectory XML label.
 #define XML_VELOCITY	(const xmlChar*)"velocity"
+  ///< velocity XML label.
 #define XML_X			(const xmlChar*)"x"
+  ///< x XML label.
 #define XML_Y			(const xmlChar*)"y"
+  ///< y XML label.
 #define XML_Z			(const xmlChar*)"z"
-
-/**
- * \struct Air
- * \brief struct to define the atmosphere.
- */
-typedef struct
-{
-    /**
-	 * \var temperature
-	 * \brief atmospheric temperature.
-	 * \var humidity
-	 * \brief atmospheric humidity.
-	 * \var pressure
-	 * \brief atmospheric pressure.
-	 * \var density
-	 * \brief atmospheric density.
-	 * \var saturation_pressure
-	 * \brief atmospheric saturation vapour pressure.
-	 * \var vapour_pressure
-	 * \brief atmospheric vapour pressure.
-	 * \var viscosity
-	 * \brief atmospheric viscosity.
-	 * \var vx
-	 * \brief wind velocity x component.
-	 * \var vy
-	 * \brief wind velocity y component.
-	 */
-  double temperature, humidity, pressure, density, saturation_pressure,
-    vapour_pressure, viscosity, vx, vy;
-} Air;
+  ///< z XML label.
 
 /**
  * \struct Drop
@@ -60,40 +45,26 @@ typedef struct
  */
 typedef struct
 {
-        /**
-	 * \var x
-	 * \brief position x component.
-	 * \var y
-	 * \brief position y component.
-	 * \var z
-	 * \brief position z component.
-	 * \var t
-	 * \brief time.
-	 * \var vx
-	 * \brief velocity x component.
-	 * \var vy
-	 * \brief velocity y component.
-	 * \var vz
-	 * \brief velocity z component.
-	 * \var ax
-	 * \brief acceleration x component.
-	 * \var ay
-	 * \brief acceleration y component.
-	 * \var az
-	 * \brief acceleration z component.
-	 * \var dt
-	 * \brief numerical time step size.
-	 * \var drag
-	 * \brief drag resistence factor.
-	 * \var diameter
-	 * \brief drop diameter.
-	 * \var density
-	 * \brief drop density.
-	 * \var cfl
-	 * \brief CFL number.
-	 */
-  double x, y, z, t, vx, vy, vz, ax, ay, az, dt, drag, diameter, density, cfl;
+  double x;                     ///< position x component.
+  double y;                     ///< position y component.
+  double z;                     ///< position z component.
+  double t;                     ///< time.
+  double vx;                    ///< velocity x component.
+  double vy;                    ///< velocity y component.
+  double vz;                    ///< velocity z component.
+  double ax;                    ///< acceleration x component.
+  double ay;                    ///< acceleration y component.
+  double az;                    ///< acceleration z component.
+  double dt;                    ///< numerical time step size.
+  double drag;                  ///< drag resistence factor.
+  double diameter;              ///< drop diameter.
+  double density;               ///< drop density.
+  double cfl;                   ///< CFL number.
 } Drop;
+
+double drag_coefficient;        ///< fixed drag resistance factor.
+double (*drop_drag) (double Reynolds);
+  ///< pointer to the function to calculate the drop drag coefficient.
 
 /**
  * \fn double xml_node_get_double (xmlNode *node, const xmlChar *prop, int *err)
@@ -120,17 +91,12 @@ xml_node_get_double (xmlNode * node, const xmlChar * prop, int *err)
   return x;
 }
 
-/*******************************************************************************
-
-void air_print(Air *a)
-
-	function to print the atmospheric variables
-
-inputs:
-	a: air struct
-
-*******************************************************************************/
-
+/**
+ * \fn void air_print (Air *a)
+ * \brief function to print the atmospheric variables.
+ * \param a
+ * \biref Air struct.
+ */
 void
 air_print (Air * a)
 {
@@ -139,25 +105,23 @@ air_print (Air * a)
           a->temperature, a->pressure, a->humidity, a->density, a->viscosity);
 }
 
-/*******************************************************************************
-
-void air_open_xml(Air *a, xmlNode *node)
-
-	function to open an air struct in a XML node
-
-inputs:
-	a: air struct
-	node: XML node
-	
-*******************************************************************************/
-
+/**
+ * \fn void air_open_xml (Air *a, xmlNode *node)
+ * \brief function to open an Air struct in a XML node.
+ * \param a
+ * \brief Air struct.
+ * \param node
+ * \brief XML node.
+ */
 void
 air_open_xml (Air * a, xmlNode * node)
 {
   int k;
   double k1, k2, kelvin;
   k1 = xml_node_get_double (node, XML_VELOCITY, &k);
+  if (!k) k1 = 0.;
   k2 = M_PI / 180. * xml_node_get_double (node, XML_ANGLE, &k);
+  if (!k) k2 = 0.;
   a->vx = k1 * cos (k2);
   a->vy = k1 * sin (k2);
   a->temperature = xml_node_get_double (node, XML_TEMPERATURE, &k);
@@ -183,6 +147,12 @@ air_open_xml (Air * a, xmlNode * node)
   air_print (a);
 }
 
+/**
+ * \fn void drop_print (Drop *d)
+ * \brief function to print the drop variables.
+ * \param d
+ * \biref Drop struct.
+ */
 void
 drop_print (Drop * d)
 {
@@ -192,6 +162,14 @@ drop_print (Drop * d)
           180. / M_PI * atan (d->vz / d->vx), d->x, d->z, d->density);
 }
 
+/**
+ * \fn void drop_density (Drop * d, double t)
+ * \brief function to calculate the drop density.
+ * \param d
+ * \brief Drop struct.
+ * \param t
+ * \brief temperature in Celsius.
+ */
 void
 drop_density (Drop * d, double t)
 {
@@ -199,6 +177,47 @@ drop_density (Drop * d, double t)
   d->density = 999.985064 + t * (-0.0037845 + t * (-0.0070759 + t * 0.0000333));
 }
 
+/**
+ * \fn double drop_drag_Fukui (double Reynolds)
+ * \brief function to calculate the drop drag factor with the
+ *   Fukui et al. (1980) model.
+ * \param Reynolds
+ * \brief Reynolds number.
+ * \return drop drag coefficient.
+ */
+double
+drop_drag_Fukui (double Reynolds)
+{
+  if (Reynolds >= 1440.)
+    return 0.45;
+  else if (Reynolds >= 128.)
+    return 72.2 / Reynolds - 0.0000556 * Reynolds + 0.46;
+  return 33.3 / Reynolds - 0.0033 * Reynolds + 1.2;
+}
+
+/**
+ * \fn double drop_drag_Fukui (double Reynolds)
+ * \brief function to fix a drop drag factor.
+ * \param Reynolds
+ * \brief Reynolds number.
+ * \return drop drag coefficient.
+ */
+double
+drop_drag_fixed (double Reynolds)
+{
+  return drag_coefficient;
+}
+
+/**
+ * \fn void drop_open_xml (Drop * d, Air * a, xmlNode * node)
+ * \brief function to open a Drop struct in a XML node.
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ * \param node
+ * \brief XML node.
+ */
 void
 drop_open_xml (Drop * d, Air * a, xmlNode * node)
 {
@@ -220,16 +239,11 @@ drop_open_xml (Drop * d, Air * a, xmlNode * node)
     d->cfl = 0.01;
   d->t = 0.;
   drop_print (d);
-}
-
-static inline double
-drop_drag (double Reynolds)
-{
-  if (Reynolds >= 1440.)
-    return 0.45;
-  else if (Reynolds >= 128.)
-    return 72.2 / Reynolds - 0.0000556 * Reynolds + 0.46;
-  return 33.3 / Reynolds - 0.0033 * Reynolds + 1.2;
+  drag_coefficient = xml_node_get_double (node, XML_DRAG, &k);
+  if (!k)
+    drop_drag = drop_drag_Fukui;
+  else
+    drop_drag = drop_drag_fixed;
 }
 
 double

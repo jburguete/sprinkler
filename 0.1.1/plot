@@ -1,0 +1,13 @@
+set term png
+set xlabel 'x (m)'
+set ylabel 'z (m)'
+set out 't-200-0,8.png'
+plot [0:15][0:] 't-1-200-0.8' u 2:4 w l t'D=1mm',\
+	't-2-200-0.8' u 2:4 w l t'D=2mm',\
+	't-3-200-0.8' u 2:4 w l t'D=3mm',\
+	't-4-200-0.8' u 2:4 w l t'D=4mm',\
+	't-5-200-0.8' u 2:4 w l t'D=5mm'
+set out 'i.png'
+plot [2:6][0:] 'out120' u 2:4 w l t'c_d=1.20',\
+	'out080' u 2:4 w l t'c_d=0.80',\
+	'out050' u 2:4 w l t'c_d=0.50'

@@ -7,16 +7,16 @@ trajectory = trajectory$(EXE)
 drops = drops$(EXE)
 invert = invert$(EXE)
 
-all: $(trajectory) $(drops) # $(invert)
-
-$(invert): invert.c drop.o Makefile
-	$(CC) $(CFLAGS) @XML_CFLAGS@ invert.c drop.o $(LIBS) @XML_LIBS@ -o $(invert)
+all: $(trajectory) $(drops) $(invert)
 
 $(trajectory): trajectory.c drop.o Makefile
 	$(CC) $(CFLAGS) trajectory.c drop.o $(LIBS) -o $(trajectory)
 
 $(drops): drops.c Makefile
 	$(CC) $(CFLAGS) drops.c -o $(drops) $(LIBS)
+
+$(invert): invert.c drop.o Makefile
+	$(CC) $(CFLAGS) @XML_CFLAGS@ invert.c drop.o $(LIBS) @XML_LIBS@ -o $(invert)
 
 drop.o: drop.c Makefile
 	$(CC) $(CFLAGS) drop.c -c -o drop.o

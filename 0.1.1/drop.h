@@ -23,28 +23,15 @@
  */
 typedef struct
 {
-    /**
-	 * \var temperature
-	 * \brief atmospheric temperature.
-	 * \var humidity
-	 * \brief atmospheric humidity.
-	 * \var pressure
-	 * \brief atmospheric pressure.
-	 * \var density
-	 * \brief atmospheric density.
-	 * \var saturation_pressure
-	 * \brief atmospheric saturation vapour pressure.
-	 * \var vapour_pressure
-	 * \brief atmospheric vapour pressure.
-	 * \var viscosity
-	 * \brief atmospheric viscosity.
-	 * \var vx
-	 * \brief wind velocity x component.
-	 * \var vy
-	 * \brief wind velocity y component.
-	 */
-  double temperature, humidity, pressure, density, saturation_pressure,
-    vapour_pressure, viscosity, vx, vy;
+  double temperature;           ///< atmospheric temperature.
+  double humidity;              ///< atmospheric humidity.
+  double pressure;              ///< atmospheric pressure.
+  double density;               ///< atmospheric density.
+  double saturation_pressure;   ///< atmospheric saturation vapour pressure.
+  double vapour_pressure;       ///< atmospheric vapour pressure.
+  double viscosity;             ///< atmospheric viscosity.
+  double vx;                    ///< wind velocity x component.
+  double vy;                    ///< wind velocity y component.
 } Air;
 
 double vector_module (double x, double y, double z);
