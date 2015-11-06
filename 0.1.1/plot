@@ -2,12 +2,26 @@ set term png
 set xlabel 'x (m)'
 set ylabel 'z (m)'
 set out 't-200-0,8.png'
-plot [0:15][0:] 't-1-200-0.8' u 2:4 w l t'D=1mm',\
-	't-2-200-0.8' u 2:4 w l t'D=2mm',\
-	't-3-200-0.8' u 2:4 w l t'D=3mm',\
-	't-4-200-0.8' u 2:4 w l t'D=4mm',\
-	't-5-200-0.8' u 2:4 w l t'D=5mm'
+plot [0:15][0:] 't-1-200-0.8' u 2:4 w l lw 2 t'D=1mm',\
+	't-2-200-0.8' u 2:4 w l lw 2 t'D=2mm',\
+	't-3-200-0.8' u 2:4 w l lw 2 t'D=3mm',\
+	't-4-200-0.8' u 2:4 w l lw 2 t'D=4mm',\
+	't-5-200-0.8' u 2:4 w l lw 2 t'D=5mm'
 set out 'i.png'
-plot [2:6][0:] 'out120' u 2:4 w l t'c_d=1.20',\
-	'out080' u 2:4 w l t'c_d=0.80',\
-	'out050' u 2:4 w l t'c_d=0.50'
+plot [2:10.5][0:] 'out6-120' u 2:4 w l lw 2 t'c_d=1.20',\
+	'out6-080' u 2:4 w l lw 2 t'c_d=0.80',\
+	'out6-050' u 2:4 w l lw 2 t'c_d=0.50',\
+	'out10,5-120' u 2:4 w l lt 1 lw 2 not,\
+	'out10,5-080' u 2:4 w l lt 2 lw 2 not,\
+	'out10,5-050' u 2:4 w l lt 3 lw 2 not
+set size ratio 8./13.
+set label 1 '4m/s' at 2,4.5 center
+set arrow 1 from 2.5,4.5 to 3.5,4.5
+set out 'v.png'
+plot [0:13][-3:5] 0.4800*x-0.0104*x**2-0.00188*x**3 w l lt rgb '#000000' \
+	t'Chorro principal',\
+	'Gotas4.txt' w vec lt rgb '#FF0000' t'D>4mm',\
+	'Gotas3.txt' w vec lt rgb '#777700' t'4mm>D>3mm',\
+	'Gotas2.txt' w vec lt rgb '#00FF00' t'3mm>D>2mm',\
+	'Gotas1.txt' w vec lt rgb '#007777' t'2mm>D>1mm',\
+	'Gotas0.txt' w vec lt rgb '#0000FF' t'1mm>D'

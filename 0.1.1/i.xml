@@ -4,4 +4,7 @@
 	<drop x="6" y="0" z="0" diameter="0.00122" velocity="3.26" angle="-63.16" drag="1.20"/>
 	<drop x="6" y="0" z="0" diameter="0.00122" velocity="3.26" angle="-63.16" drag="0.80"/>
 	<drop x="6" y="0" z="0" diameter="0.00122" velocity="3.26" angle="-63.16" drag="0.50"/>
+	<drop x="10.5" y="0" z="0" diameter="0.00275" velocity="4.70" angle="-61.34" drag="1.20"/>
+	<drop x="10.5" y="0" z="0" diameter="0.00275" velocity="4.70" angle="-61.34" drag="0.80"/>
+	<drop x="10.5" y="0" z="0" diameter="0.00275" velocity="4.70" angle="-61.34" drag="0.50"/>
 </trajectory>
