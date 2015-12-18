@@ -8,14 +8,11 @@
 #ifndef DROP__H
 #define DROP__H 1
 
-/**
- * \def R
- * \brief thermodinamic constant.
- * \def G
- * \brief gravitational acceleration constant.
- */
-#define R 8.314
-#define G 9.81
+#define R 8.314                 ///< thermodinamic constant.
+#define G 9.81                  ///< gravitational acceleration constant.
+#define AIR_MOLECULAR_MASS 0.028964     ///< dry air molecular mass.
+#define WATER_MOLECULAR_MASS 0.018016   ///< water molecular mass.
+#define KELVIN 273.15           ///< Kelvin to Celsius degree.
 
 /**
  * \struct Air

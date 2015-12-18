@@ -136,6 +136,38 @@ sprinkler_init (Sprinkler * s)
 }
 
 /**
+ * \fn double air_viscosity (Air *a, double kelvin)
+ * \brief function to calculate the air dynamic viscosity with the Sutherland
+ *   equation.
+ * \param a
+ * \brief air struct.
+ * \param kelvin
+ * \brief Kelvin temperature.
+ * \return air dynamic viscosity.
+ */
+double
+air_viscosity (Air * a, double kelvin)
+{
+  return 1.458e-6 * kelvin * sqrt (kelvin) / (kelvin + 110.4);
+}
+
+/**
+ * \fn double air_saturation_pressure (Air *a, double kelvin)
+ * \brief function to calculate the water saturation pressure in air with the
+ *   Antoine equation.
+ * \param a
+ * \brief air struct.
+ * \param kelvin
+ * \brief Kelvin temperature.
+ * \return water saturation pressure in air.
+ */
+double
+air_saturation_pressure (Air * a, double kelvin)
+{
+  return exp (23.7836 - 37.8289 / (kelvin - 42.850));
+}
+
+/**
  * \fn void air_open(Air *a, FILE *file)
  * \brief function to open an air struct in a file.
  * \param a
@@ -155,17 +187,13 @@ air_open (Air * a, FILE * file)
   k2 *= M_PI / 180.;
   a->vx = k1 * cos (k2);
   a->vy = k1 * sin (k2);
-  a->viscosity = 0.0908e-6 * a->temperature + 13.267e-6;
-  kelvin = a->temperature + 273.16;
-  a->saturation_pressure = 698.450529 + kelvin *
-    (-18.8903931 + kelvin *
-     (0.213335768 + kelvin *
-      (-0.001288580973 + kelvin *
-       (0.000004393587233 + kelvin *
-        (-0.000000008023923082 + kelvin * 6.136820929E-12)))));
+  kelvin = a->temperature + KELVIN;
+  a->viscosity = air_viscosity (a, kelvin);
+  a->saturation_pressure = air_saturation_pressure (a, kelvin);
   a->vapour_pressure = a->saturation_pressure * 0.01 * a->humidity;
-  a->density = (0.029 * a->pressure - 0.011 * a->vapour_pressure) /
-    (R * kelvin);
+  a->density = (AIR_MOLECULAR_MASS * a->pressure
+                + (WATER_MOLECULAR_MASS -
+                   AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * kelvin);
   printf ("Air density = %le\n", a->density);
   printf ("Air viscosity = %le\n", a->viscosity);
   return 1;
@@ -195,17 +223,13 @@ air_init (Air * a)
   scanf ("%le", &(a->humidity));
   printf ("Air pressure: ");
   scanf ("%le", &(a->pressure));
-  a->viscosity = 0.0908e-6 * a->temperature + 13.267e-6;
-  kelvin = a->temperature + 273.16;
-  a->saturation_pressure = 698.450529 + kelvin *
-    (-18.8903931 + kelvin *
-     (0.213335768 + kelvin *
-      (-0.001288580973 + kelvin *
-       (0.000004393587233 + kelvin *
-        (-0.000000008023923082 + kelvin * 6.136820929E-12)))));
+  kelvin = a->temperature + KELVIN;
+  a->viscosity = air_viscosity (a, kelvin);
+  a->saturation_pressure = air_saturation_pressure (a, kelvin);
   a->vapour_pressure = a->saturation_pressure * 0.01 * a->humidity;
-  a->density = (0.029 * a->pressure - 0.011 * a->vapour_pressure) /
-    (R * kelvin);
+  a->density = (AIR_MOLECULAR_MASS * a->pressure
+                + (WATER_MOLECULAR_MASS -
+                   AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * kelvin);
   printf ("Air density = %le\n", a->density);
   printf ("Air viscosity = %le\n", a->viscosity);
 }
@@ -290,8 +314,8 @@ drop_move (Drop * d, Air * a, Trajectory * t)
   vrx = t->vx - a->vx;
   vry = t->vy - a->vy;
   v = vector_module (vrx, vry, t->vz);
-  t->drag = -0.75 * v * drop_drag (v * d->diameter / a->viscosity) *
-    a->density / (d->density * d->diameter);
+  t->drag = -0.75 * v * drop_drag (a->density * v * d->diameter / a->viscosity)
+    * a->density / (d->density * d->diameter);
   t->ax = t->drag * vrx;
   t->ay = t->drag * vry;
   t->az = -G + t->drag * t->vz;
