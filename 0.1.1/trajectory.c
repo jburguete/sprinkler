@@ -1,3 +1,32 @@
+/*
+Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
+
+AUTHORS: Javier Burguete.
+
+Copyright 2012-2015, AUTHORS.
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+	1. Redistributions of source code must retain the above copyright notice,
+		this list of conditions and the following disclaimer.
+
+	2. Redistributions in binary form must reproduce the above copyright notice,
+		this list of conditions and the following disclaimer in the
+		documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY AUTHORS ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
+SHALL AUTHORS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
+IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY
+OF SUCH DAMAGE.
+*/
+
 /**
  * \file trajectory.c
  * \brief File to calculate the trajectory of a drop with the ballistic model.
@@ -6,6 +35,13 @@
  */
 #include <stdio.h>
 #include <math.h>
+#include <libxml/parser.h>
+#include <gsl/gsl_rng.h>
+#if HAVE_GTK
+#include <gtk/gtk.h>
+#endif
+#include "config.h"
+#include "air.h"
 #include "drop.h"
 
 /**
@@ -133,105 +169,6 @@ sprinkler_init (Sprinkler * s)
   scanf ("%le", &(s->jet_length));
   printf ("Bed level: ");
   scanf ("%le", &(s->bed_level));
-}
-
-/**
- * \fn double air_viscosity (Air *a, double kelvin)
- * \brief function to calculate the air dynamic viscosity with the Sutherland
- *   equation.
- * \param a
- * \brief air struct.
- * \param kelvin
- * \brief Kelvin temperature.
- * \return air dynamic viscosity.
- */
-double
-air_viscosity (Air * a, double kelvin)
-{
-  return 1.458e-6 * kelvin * sqrt (kelvin) / (kelvin + 110.4);
-}
-
-/**
- * \fn double air_saturation_pressure (Air *a, double kelvin)
- * \brief function to calculate the water saturation pressure in air with the
- *   Antoine equation.
- * \param a
- * \brief air struct.
- * \param kelvin
- * \brief Kelvin temperature.
- * \return water saturation pressure in air.
- */
-double
-air_saturation_pressure (Air * a, double kelvin)
-{
-  return exp (23.7836 - 37.8289 / (kelvin - 42.850));
-}
-
-/**
- * \fn void air_open(Air *a, FILE *file)
- * \brief function to open an air struct in a file.
- * \param a
- * \brief air struct.
- * \param file
- * \brief file.
- * \return 1 on success, 0 on error.
- */
-int
-air_open (Air * a, FILE * file)
-{
-  double k1, k2, kelvin;
-  if (fscanf (file, "%le%le%le%le%le", &k1, &k2, &(a->temperature),
-              &(a->humidity), &(a->pressure)) != 5)
-    return 0;
-  k1 *= M_PI / 180.;
-  k2 *= M_PI / 180.;
-  a->vx = k1 * cos (k2);
-  a->vy = k1 * sin (k2);
-  kelvin = a->temperature + KELVIN;
-  a->viscosity = air_viscosity (a, kelvin);
-  a->saturation_pressure = air_saturation_pressure (a, kelvin);
-  a->vapour_pressure = a->saturation_pressure * 0.01 * a->humidity;
-  a->density = (AIR_MOLECULAR_MASS * a->pressure
-                + (WATER_MOLECULAR_MASS -
-                   AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * kelvin);
-  printf ("Air density = %le\n", a->density);
-  printf ("Air viscosity = %le\n", a->viscosity);
-  return 1;
-}
-
-/**
- * \fn void air_init(Air *a)
- * \brief function to input an air struct.
- * \param a
- * \brief air struct.
- */
-void
-air_init (Air * a)
-{
-  double k1, k2, kelvin;
-  printf ("Wind velocity: ");
-  scanf ("%le", &k1);
-  printf ("Wind angle: ");
-  scanf ("%le", &k2);
-  k1 *= M_PI / 180.;
-  k2 *= M_PI / 180.;
-  a->vx = k1 * cos (k2);
-  a->vy = k1 * sin (k2);
-  printf ("Air temperature (Celsius): ");
-  scanf ("%le", &(a->temperature));
-  printf ("Air relative humidity: ");
-  scanf ("%le", &(a->humidity));
-  printf ("Air pressure: ");
-  scanf ("%le", &(a->pressure));
-  kelvin = a->temperature + KELVIN;
-  a->viscosity = air_viscosity (a, kelvin);
-  a->saturation_pressure = air_saturation_pressure (a, kelvin);
-  a->vapour_pressure = a->saturation_pressure * 0.01 * a->humidity;
-  a->density = (AIR_MOLECULAR_MASS * a->pressure
-                + (WATER_MOLECULAR_MASS -
-                   AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * kelvin);
-  printf ("Air density = %le\n", a->density);
-  printf ("Air viscosity = %le\n", a->viscosity);
 }
 
 /**
@@ -527,7 +464,7 @@ open (char *name, Sprinkler * sprinkler, Air * air, Drop * drop,
   if (!file)
     return 0;
   if (!sprinkler_open (sprinkler, file)
-      || !air_open (air, file) || !drop_open (drop, air, file))
+      || !air_open_file (air, file) || !drop_open (drop, air, file))
     {
       fclose (file);
       return 0;

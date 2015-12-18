@@ -6,6 +6,7 @@
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
 #include <math.h>
+#include "config.h"
 #include "drop.h"
 
 /**

@@ -1,5 +1,5 @@
-CFLAGS = @CFLAGS@ -O2 -Wall
-LIBS = @LDFLAGS@ @LIBS@
+CFLAGS = @CFLAGS@ @XML_CFLAGS@ @GSL_CFLAGS@ -O2 -Wall
+LIBS = @LDFLAGS@ @LIBS@ @XML_LIBS@ @GSL_CFLAGS@
 CC = @CC@ @ARCH@ @LTO@ @STD@
 EXE = @EXE@
 
@@ -9,14 +9,17 @@ invert = invert$(EXE)
 
 all: $(trajectory) $(drops) $(invert)
 
-$(trajectory): trajectory.c drop.o Makefile
-	$(CC) $(CFLAGS) trajectory.c drop.o $(LIBS) -o $(trajectory)
+$(trajectory): trajectory.c air.o drop.o Makefile
+	$(CC) $(CFLAGS) trajectory.c air.o drop.o $(LIBS) -o $(trajectory)
 
 $(drops): drops.c Makefile
-	$(CC) $(CFLAGS) drops.c -o $(drops) $(LIBS)
+	$(CC) $(CFLAGS) drops.c $(LIBS) -o $(drops)
 
 $(invert): invert.c drop.o Makefile
-	$(CC) $(CFLAGS) @XML_CFLAGS@ invert.c drop.o $(LIBS) @XML_LIBS@ -o $(invert)
+	$(CC) $(CFLAGS) @XML_CFLAGS@ invert.c drop.o $(LIBS) -o $(invert)
 
-drop.o: drop.c Makefile
+air.o: air.c air.h Makefile
+	$(CC) $(CFLAGS) air.c -c -o air.o
+
+drop.o: drop.c drop.h air.h Makefile
 	$(CC) $(CFLAGS) drop.c -c -o drop.o

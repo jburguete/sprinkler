@@ -55,6 +55,7 @@ fi
 
 # Checks for libraries
 AC_SEARCH_LIBS([sqrt], [m])
+PKG_CHECK_MODULES([GSL], [gsl])
 PKG_CHECK_MODULES([XML], [libxml-2.0])
 
 # Checks for header files
