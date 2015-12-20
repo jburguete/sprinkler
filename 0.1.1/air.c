@@ -43,30 +43,30 @@ OF SUCH DAMAGE.
 #include "config.h"
 #include "air.h"
 
-double air_temperature = AIR_TEMPERATURE; ///< air temperature in Celsius.
-double air_pressure = AIR_PRESSURE; ///< air pressure.
-double air_humidity = AIR_HUMIDITY; ///< air relative humidity.
-double air_velocity = WIND_VELOCITY; ///< wind velocity.
-double air_uncertainty = WIND_UNCERTAINTY; ///< wind velocity uncertainty.
-double air_angle = WIND_ANGLE; ///< wind angle.
+double air_temperature = AIR_TEMPERATURE;       ///< air temperature in Celsius.
+double air_pressure = AIR_PRESSURE;     ///< air pressure.
+double air_humidity = AIR_HUMIDITY;     ///< air relative humidity.
+double air_velocity = WIND_VELOCITY;    ///< wind velocity.
+double air_uncertainty = WIND_UNCERTAINTY;      ///< wind velocity uncertainty.
+double air_angle = WIND_ANGLE;  ///< wind angle.
 double air_height = WIND_HEIGHT;
   ///< reference height to measure the wind velocity.
 
 double
-xml_node_get_float (xmlNode *node, const xmlChar *prop, double default_value,
-		            int *error_code)
+xml_node_get_float (xmlNode * node, const xmlChar * prop, double default_value,
+                    int *error_code)
 {
   const xmlChar *buffer;
   double x;
   *error_code = 1;
   if (!xmlHasProp (node, prop))
-	return default_value;
-  buffer = xmlGetProp(node, prop);
-  if (!buffer || sscanf ((char*)buffer, "%lf", &x) != 1)
+    return default_value;
+  buffer = xmlGetProp (node, prop);
+  if (!buffer || sscanf ((char *) buffer, "%lf", &x) != 1)
     {
-	  *error_code = 0;
-	  return 0;
-	}
+      *error_code = 0;
+      return 0;
+    }
   return x;
 }
 
@@ -98,6 +98,20 @@ air_saturation_pressure (Air * a)
   return exp (23.7836 - 37.8289 / (a->kelvin - 42.850));
 }
 
+/**
+ * \fn void air_print (Air *a)
+ * \brief function to print the atmospheric variables.
+ * \param a
+ * \biref Air struct.
+ */
+void
+air_print (Air * a)
+{
+  printf ("Air:\n\ttemperature=%lg\n\tpressure=%lg\n\thumidity=%lg\n\t"
+          "density=%lg\n\tviscosity=%le\n",
+          a->temperature, a->pressure, a->humidity, a->density, a->viscosity);
+}
+
 /*
  * \fn void air_init (Air * a)
  * \brief function to init atmospheric variables.
@@ -122,8 +136,7 @@ air_init (Air * a)
   a->density = (AIR_MOLECULAR_MASS * a->pressure
                 + (WATER_MOLECULAR_MASS -
                    AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * a->kelvin);
-  printf ("Air density = %lg\n", a->density);
-  printf ("Air viscosity = %lg\n", a->viscosity);
+  air_print (a);
 }
 
 /**
@@ -139,7 +152,7 @@ int
 air_open_file (Air * a, FILE * file)
 {
   if (fscanf (file, "%lf%lf%lf%lf%lf", &air_velocity, &air_angle,
-			  &air_temperature, &air_humidity, &air_pressure) != 5)
+              &air_temperature, &air_humidity, &air_pressure) != 5)
     return 0;
   air_init (a);
   return 1;
@@ -175,36 +188,36 @@ air_open_console (Air * a)
  * \param node
  * \brief XML node.
  * \return 1 on success, 0 on error.
- */ 
+ */
 int
-air_open_xml (Air *a, xmlNode * node)
+air_open_xml (Air * a, xmlNode * node)
 {
   int k;
   if (xmlStrcmp (node->name, XML_AIR))
     return 0;
   air_pressure = xml_node_get_float (node, XML_PRESSURE, AIR_PRESSURE, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_temperature
-	= xml_node_get_float (node, XML_TEMPERATURE, AIR_TEMPERATURE, &k);
+    = xml_node_get_float (node, XML_TEMPERATURE, AIR_TEMPERATURE, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_humidity = xml_node_get_float (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_velocity = xml_node_get_float (node, XML_VELOCITY, WIND_VELOCITY, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_angle = xml_node_get_float (node, XML_ANGLE, WIND_ANGLE, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_height = xml_node_get_float (node, XML_HEIGHT, WIND_HEIGHT, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_uncertainty
-	= xml_node_get_float (node, XML_UNCERTAINTY, WIND_UNCERTAINTY, &k);
+    = xml_node_get_float (node, XML_UNCERTAINTY, WIND_UNCERTAINTY, &k);
   if (k != 1)
-	return 0;
+    return 0;
   air_init (a);
   return 1;
 }
@@ -218,7 +231,7 @@ air_open_xml (Air *a, xmlNode * node)
  * \brief GSL pseudo-random numbers generator struct.
  */
 void
-air_wind_uncertainty (Air * a, gsl_rng *rng)
+air_wind_uncertainty (Air * a, gsl_rng * rng)
 {
   float uncertainty, angle;
   angle = 2 * M_PI * gsl_rng_uniform (rng);
@@ -230,7 +243,7 @@ air_wind_uncertainty (Air * a, gsl_rng *rng)
 #if HAVE_GTK
 
 void
-dialog_air_new (Air *a)
+dialog_air_new (Air * a)
 {
   DialogAir dlg[1];
 
@@ -243,51 +256,39 @@ dialog_air_new (Air *a)
   dlg->label_uncertainty =
     (GtkLabel *) gtk_label_new ("Incertidumbre del viento");
 
-  dlg->entry_temperature = (GtkSpinButton *)
+  dlg->spin_temperature = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 100., 0.1);
-  dlg->entry_pressure = (GtkSpinButton *)
+  dlg->spin_pressure = (GtkSpinButton *)
     gtk_spin_button_new_with_range (90000., 110000., 100.);
-  dlg->entry_velocity = (GtkSpinButton *)
+  dlg->spin_velocity = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 20., 0.01);
-  dlg->entry_angle = (GtkSpinButton *)
+  dlg->spin_angle = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 360., 0.1);
-  dlg->entry_height = (GtkSpinButton *)
+  dlg->spin_height = (GtkSpinButton *)
     gtk_spin_button_new_with_range (1., 50., 0.1);
-  dlg->entry_uncertainty = (GtkSpinButton *)
+  dlg->spin_uncertainty = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 20., 0.01);
 
-  gtk_spin_button_set_value (dlg->entry_temperature, air_temperature);
-  gtk_spin_button_set_value (dlg->entry_pressure, air_pressure);
-  gtk_spin_button_set_value (dlg->entry_velocity, air_velocity);
-  gtk_spin_button_set_value (dlg->entry_angle, air_angle);
-  gtk_spin_button_set_value (dlg->entry_height, air_height);
-  gtk_spin_button_set_value (dlg->entry_uncertainty, air_uncertainty);
+  gtk_spin_button_set_value (dlg->spin_temperature, air_temperature);
+  gtk_spin_button_set_value (dlg->spin_pressure, air_pressure);
+  gtk_spin_button_set_value (dlg->spin_velocity, air_velocity);
+  gtk_spin_button_set_value (dlg->spin_angle, air_angle);
+  gtk_spin_button_set_value (dlg->spin_height, air_height);
+  gtk_spin_button_set_value (dlg->spin_uncertainty, air_uncertainty);
 
-  dlg->table = (GtkTable *) gtk_table_new (0, 0, 1);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_temperature, 0, 1, 0, 1);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_temperature, 1, 2, 0, 1);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_pressure, 0, 1, 1, 2);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_pressure, 1, 2, 1, 2);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_velocity, 0, 1, 2, 3);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_velocity, 1, 2, 2, 3);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_angle, 0, 1, 3, 4);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_angle, 1, 2, 3, 4);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_height, 0, 1, 4, 5);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_height, 1, 2, 4, 5);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->label_uncertainty, 0, 1, 5, 6);
-  gtk_table_attach_defaults (dlg->table,
-                             (GtkWidget *) dlg->entry_uncertainty, 1, 2, 5, 6);
+  dlg->grid = (GtkGrid *) gtk_grid_new ();
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_temperature, 0, 0, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_temperature, 1, 0, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_pressure, 0, 1, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_pressure, 1, 1, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_velocity, 0, 2, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_velocity, 1, 2, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_angle, 0, 3, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_angle, 1, 3, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_height, 0, 4, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_height, 1, 4, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_uncertainty, 0, 5, 1, 1);
+  gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_uncertainty, 1, 5, 1, 1);
 
   dlg->window =
     (GtkDialog *) gtk_dialog_new_with_buttons ("Condiciones atmosféricas",
@@ -301,13 +302,13 @@ dialog_air_new (Air *a)
 
   if (gtk_dialog_run (dlg->window) == GTK_RESPONSE_OK)
     {
-      air_temperature = gtk_spin_button_get_value (dlg->entry_temperature);
-      air_pressure = gtk_spin_button_get_value (dlg->entry_pressure);
-      air_velocity = gtk_spin_button_get_value (dlg->entry_velocity);
-      air_angle = gtk_spin_button_get_value (dlg->entry_angle);
-      air_height = gtk_spin_button_get_value (dlg->entry_height);
-      air_uncertainty = gtk_spin_button_get_value (dlg->entry_uncertainty);
-	  air_init (a);
+      air_temperature = gtk_spin_button_get_value (dlg->spin_temperature);
+      air_pressure = gtk_spin_button_get_value (dlg->spin_pressure);
+      air_velocity = gtk_spin_button_get_value (dlg->spin_velocity);
+      air_angle = gtk_spin_button_get_value (dlg->spin_angle);
+      air_height = gtk_spin_button_get_value (dlg->spin_height);
+      air_uncertainty = gtk_spin_button_get_value (dlg->spin_uncertainty);
+      air_init (a);
     }
   gtk_widget_destroy ((GtkWidget *) dlg->window);
 }

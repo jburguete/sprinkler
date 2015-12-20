@@ -57,6 +57,14 @@ OF SUCH DAMAGE.
   ///< air XML label.
 #define XML_ANGLE		(const xmlChar*)"angle"
   ///< angle XML label.
+#define XML_CFL			(const xmlChar*)"cfl"
+  ///< cfl XML label.
+#define XML_DIAMETER	(const xmlChar*)"diameter"
+  ///< diameter XML label.
+#define XML_DRAG		(const xmlChar*)"drag"
+  ///< drop XML label.
+#define XML_DROP		(const xmlChar*)"drop"
+  ///< drop XML label.
 #define XML_HEIGHT		(const xmlChar*)"height"
   ///< height XML label.
 #define XML_HUMIDITY	(const xmlChar*)"humidity"
@@ -65,9 +73,17 @@ OF SUCH DAMAGE.
   ///< pressure XML label.
 #define XML_TEMPERATURE	(const xmlChar*)"temperature"
   ///< temperature XML label.
+#define XML_TRAJECTORY	(const xmlChar*)"trajectory"
+  ///< trajectory XML label.
 #define XML_UNCERTAINTY	(const xmlChar*)"uncertainty"
   ///< uncertainty XML label.
 #define XML_VELOCITY	(const xmlChar*)"velocity"
   ///< velocity XML label.
+#define XML_X			(const xmlChar*)"x"
+  ///< x XML label.
+#define XML_Y			(const xmlChar*)"y"
+  ///< y XML label.
+#define XML_Z			(const xmlChar*)"z"
+  ///< z XML label.
 
 #endif

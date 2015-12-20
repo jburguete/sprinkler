@@ -16,7 +16,7 @@ $(drops): drops.c Makefile
 	$(CC) $(CFLAGS) drops.c $(LIBS) -o $(drops)
 
 $(invert): invert.c drop.o Makefile
-	$(CC) $(CFLAGS) @XML_CFLAGS@ invert.c drop.o $(LIBS) -o $(invert)
+	$(CC) $(CFLAGS) invert.c drop.o $(LIBS) -o $(invert)
 
 air.o: air.c air.h Makefile
 	$(CC) $(CFLAGS) air.c -c -o air.o

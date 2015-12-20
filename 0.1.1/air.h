@@ -66,25 +66,40 @@ extern double air_temperature, air_pressure, air_humidity, air_velocity,
 
 double air_viscosity (Air * a);
 double air_saturation_pressure (Air * a);
+void air_print (Air * a);
 void air_init (Air * a);
 int air_open_file (Air * a, FILE * file);
 void air_open_console (Air * a);
-int air_open_xml (Air *a, xmlNode * node);
-void air_wind_uncertainty (Air * a, gsl_rng *rng);
+int air_open_xml (Air * a, xmlNode * node);
+void air_wind_uncertainty (Air * a, gsl_rng * rng);
 
 #if HAVE_GTK
 
+/**
+ * \struct DialogAir
+ * \brief dialog to set the atmospheric conditions.
+ */
 typedef struct
 {
-  GtkLabel *label_temperature, *label_pressure, *label_velocity, *label_angle,
-    *label_height, *label_uncertainty;
-  GtkSpinButton *entry_temperature, *entry_pressure, *entry_velocity,
-    *entry_angle, *entry_height, *entry_uncertainty;
-  GtkTable *table;
-  GtkDialog *window;
+  GtkLabel *label_temperature;  ///< temperature GtkLabel.
+  GtkLabel *label_pressure;     ///< pressure GtkLabel.
+  GtkLabel *label_velocity;     ///< wind velocity GtkLabel. 
+  GtkLabel *label_angle;        ///< wind angle GtkLabel.
+  GtkLabel *label_height;
+  ///< reference heigt to measure the wind velocity GtkLabel.
+  GtkLabel *label_uncertainty;  ///< wind uncertainty GtkLabel.
+  GtkSpinButton *spin_temperature;      ///< temperature GtkSpinButton.
+  GtkSpinButton *spin_pressure; ///< pressure GtkSpinButton.
+  GtkSpinButton *spin_velocity; ///< wind velocity GtkSpinButton. 
+  GtkSpinButton *spin_angle;    ///< wind angle GtkSpinButton.
+  GtkSpinButton *spin_height;
+  ///< reference heigt to measure the wind velocity GtkSpinButton.
+  GtkSpinButton *spin_uncertainty;      ///< wind uncertainty GtkSpinButton.
+  GtkGrid *grid;                ///< GtkGrid to pack the widgets.
+  GtkDialog *window;            ///< GtkDialog to show the widgets.
 } DialogAir;
 
-void dialog_air_new (Air *a);
+void dialog_air_new (Air * a);
 
 #endif
 

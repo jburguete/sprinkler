@@ -73,21 +73,6 @@ typedef struct
 } Sprinkler;
 
 /**
- * \struct Drop
- * \brief struct to define a drop.
- */
-typedef struct
-{
-    /**
-	 * \var diameter
-	 * \brief drop diameter.
-	 * \var density
-	 * \brief drop density.
-	 */
-  double diameter, density;
-} Drop;
-
-/**
  * \struct Trajectory
  * \brief struct to define a drop trajectory.
  */
@@ -172,68 +157,6 @@ sprinkler_init (Sprinkler * s)
 }
 
 /**
- * \fn void drop_open (Drop * d, Air * a, FILE * file)
- * \brief function to open a drop struct in a file.
- * \param d
- * \brief drop struct.
- * \param a
- * \brief air struct.
- * \param file
- * \brief file.
- * \return 1 on success, 0 on error.
- */
-int
-drop_open (Drop * d, Air * a, FILE * file)
-{
-  double t;
-  if (fscanf (file, "%le", &(d->diameter)) != 1)
-    return 0;
-  t = a->temperature - 4.;
-  d->density = 999.985064 + t * (-0.0037845 + t * (-0.0070759 + t * 0.0000333));
-  printf ("Drop density = %le\n", d->density);
-  return 1;
-}
-
-/**
- * \fn void drop_init (Drop * d, Air * a)
- * \brief function to input a drop struct.
- * \param d
- * \brief drop struct.
- * \param a
- * \brief air struct.
- */
-void
-drop_init (Drop * d, Air * a)
-{
-  double t;
-  printf ("Drop diameter: ");
-  scanf ("%le", &(d->diameter));
-  t = a->temperature - 4.;
-  d->density = 999.985064 + t * (-0.0037845 + t * (-0.0070759 + t * 0.0000333));
-  printf ("Drop density = %le\n", d->density);
-}
-
-/**
- * \fn double drop_drag (double Reynolds)
- * \brief function to calculate the drop drag resistance coefficient according
- *   to Fukui et al. (1980).
- * \param Reynolds
- * \brief Reynolds number.
- * \return drop drag resistance coefficient.
- */
-double
-drop_drag (double Reynolds)
-{
-  if (Reynolds == 0.)
-    return 0.;
-  if (Reynolds >= 1440.)
-    return 0.45;
-  if (Reynolds >= 128.)
-    return 72.2 / Reynolds - 0.0000556 * Reynolds + 0.46;
-  return 33.3 / Reynolds - 0.0033 * Reynolds + 1.2;
-}
-
-/**
  * \fn double drop_move (Drop * d, Air * a, Trajectory * t)
  * \brief function to calculate drag resistance and acceleration vector.
  * \param d
@@ -251,8 +174,9 @@ drop_move (Drop * d, Air * a, Trajectory * t)
   vrx = t->vx - a->vx;
   vry = t->vy - a->vy;
   v = vector_module (vrx, vry, t->vz);
-  t->drag = -0.75 * v * drop_drag (a->density * v * d->diameter / a->viscosity)
-    * a->density / (d->density * d->diameter);
+  t->drag =
+    -0.75 * v * drop_drag (a->density * v * d->diameter / a->viscosity) *
+    a->density / (d->density * d->diameter);
   t->ax = t->drag * vrx;
   t->ay = t->drag * vry;
   t->az = -G + t->drag * t->vz;

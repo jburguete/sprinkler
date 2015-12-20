@@ -8,36 +8,9 @@
 #include <math.h>
 #include <string.h>
 #include <libxml/parser.h>
+#include "config.h"
+#include "air.h"
 #include "drop.h"
-
-#define XML_AIR			(const xmlChar*)"air"
-  ///< air XML label.
-#define XML_ANGLE		(const xmlChar*)"angle"
-  ///< angle XML label.
-#define XML_CFL			(const xmlChar*)"cfl"
-  ///< cfl XML label.
-#define XML_DIAMETER	(const xmlChar*)"diameter"
-  ///< diameter XML label.
-#define XML_DRAG		(const xmlChar*)"drag"
-  ///< drop XML label.
-#define XML_DROP		(const xmlChar*)"drop"
-  ///< drop XML label.
-#define XML_HUMIDITY	(const xmlChar*)"humidity"
-  ///< humidity XML label.
-#define XML_PRESSURE	(const xmlChar*)"pressure"
-  ///< pressure XML label.
-#define XML_TEMPERATURE	(const xmlChar*)"temperature"
-  ///< temperature XML label.
-#define XML_TRAJECTORY	(const xmlChar*)"trajectory"
-  ///< trajectory XML label.
-#define XML_VELOCITY	(const xmlChar*)"velocity"
-  ///< velocity XML label.
-#define XML_X			(const xmlChar*)"x"
-  ///< x XML label.
-#define XML_Y			(const xmlChar*)"y"
-  ///< y XML label.
-#define XML_Z			(const xmlChar*)"z"
-  ///< z XML label.
 
 /**
  * \struct Drop
@@ -89,20 +62,6 @@ xml_node_get_double (xmlNode * node, const xmlChar * prop, int *err)
   *err = sscanf (buffer, "%le", &x);
   xmlFree (buffer);
   return x;
-}
-
-/**
- * \fn void air_print (Air *a)
- * \brief function to print the atmospheric variables.
- * \param a
- * \biref Air struct.
- */
-void
-air_print (Air * a)
-{
-  printf ("Air:\n\ttemperature=%lg\n\tpressure=%lg\n\thumidity=%lg\n\t"
-          "density=%le\n\tviscosity=%le\n",
-          a->temperature, a->pressure, a->humidity, a->density, a->viscosity);
 }
 
 /**
