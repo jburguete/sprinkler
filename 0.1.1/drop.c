@@ -55,9 +55,9 @@ double drop_vertical_angle;
   ///< vertical angle of the drop initial velocity.
 double drop_drag_coefficient;
   ///< drop drag resistance coefficient for the constant model.
-double (*drag_axis_ratio) (Drop *d, Air *a, double v);
+double (*drop_axis_ratio) (Drop * d, Air * a, double v);
   ///< pointer to the function to calculate the drop axis ratio.
-double (*drop_drag) (Drop *d, Air *a, double v);
+double (*drop_drag) (Drop * d, Air * a, double v);
   ///< pointer to the function to calculate the drop drag resistance
   ///< coefficient.
 
@@ -154,7 +154,7 @@ int
 drop_open_file (Drop * d, Air * a, FILE * file)
 {
   if (fscanf (file, "%lf", &drop_diameter) != 1)
-	return 0;
+    return 0;
   drop_init (d, a);
   return 1;
 }
@@ -185,7 +185,7 @@ drop_open_console (Drop * d, Air * a)
  * \return 1 on success, 0 on error.
  */
 int
-drop_open_xml (Drop *d, Air *a, xmlNode *node)
+drop_open_xml (Drop * d, Air * a, xmlNode * node)
 {
   int k;
   double sh, ch, sv, cv;
@@ -207,11 +207,11 @@ drop_open_xml (Drop *d, Air *a, xmlNode *node)
   if (!k)
     return 0;
   drop_horizontal_angle
-	= xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
+    = xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
   if (!k)
     return 0;
   drop_vertical_angle
-	= xml_node_get_float_with_default (node, XML_VERTICAL_ANGLE, 0., &k);
+    = xml_node_get_float_with_default (node, XML_VERTICAL_ANGLE, 0., &k);
   if (!k)
     return 0;
   sincos (M_PI / 180. * drop_horizontal_angle, &sh, &ch);
@@ -235,7 +235,7 @@ drop_open_xml (Drop *d, Air *a, xmlNode *node)
  * \return axis ratio.
  */
 double
-drag_axis_ratio_Burguete (Drop *d, Air *a, double v)
+drag_axis_ratio_Burguete (Drop * d, Air * a, double v)
 {
   double Weber;
   Weber = 0.25 * a->density * v * v * d->diameter / d->surface_tension;
@@ -254,7 +254,7 @@ drag_axis_ratio_Burguete (Drop *d, Air *a, double v)
  * \return fixed drop drag resistance coefficient.
  */
 double
-drop_drag_constant (Drop *d, Air *a, double v)
+drop_drag_constant (Drop * d, Air * a, double v)
 {
   return drop_drag_coefficient;
 }
@@ -272,7 +272,7 @@ drop_drag_constant (Drop *d, Air *a, double v)
  * \return drop drag resistance coefficient of a solid smooth sphere.
  */
 double
-drop_drag_sphere (Drop *d, Air *a, double v)
+drop_drag_sphere (Drop * d, Air * a, double v)
 {
   double Reynolds;
   Reynolds = v * d->diameter / a->kinematic_viscosity;
@@ -298,11 +298,13 @@ drop_drag_sphere (Drop *d, Air *a, double v)
  * \return drop drag resistance coefficient of an ovoid drop.
  */
 double
-drop_drag_ovoid (Drop *d, Air *a, double v)
+drop_drag_ovoid (Drop * d, Air * a, double v)
 {
   drop_axis_ratio (d, a, v);
-  return drop_drag_sphere (d, a, v) * (3.709 + d->axis_ratio * (- 5.519
-	+ 2.731 * d->axis_ratio));
+  return drop_drag_sphere (d, a, v) * (3.709 + d->axis_ratio * (-5.519
+                                                                +
+                                                                2.731 *
+                                                                d->axis_ratio));
 }
 
 /**
@@ -316,17 +318,17 @@ drop_drag_ovoid (Drop *d, Air *a, double v)
  * \return drag resistance factor.
  */
 double
-drop_move (Drop * d, Air *a)
+drop_move (Drop * d, Air * a)
 {
   double vrx, vry, v;
   vrx = d->v[0] - a->u;
   vry = d->v[1] - a->v;
   v = vector_module (vrx, vry, d->v[2]);
   d->drag =
-	-0.75 * v * drop_drag (d, a, v) * a->density / (d->density * d->diameter);
+    -0.75 * v * drop_drag (d, a, v) * a->density / (d->density * d->diameter);
   d->a[0] = d->drag * vrx;
   d->a[1] = d->drag * vry;
-  d->a[2] = - (1. - a->density / d->density) * G + d->drag * d->v[2];
+  d->a[2] = -(1. - a->density / d->density) * G + d->drag * d->v[2];
   return -d->drag;
 }
 

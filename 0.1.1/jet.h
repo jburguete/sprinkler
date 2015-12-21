@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -28,18 +28,45 @@ OF SUCH DAMAGE.
 */
 
 /**
- * \file utils.h
- * \brief Header file to define some useful functions.
+ * \file jet.h
+ * \brief Header file to define the data of a sprinkler main jet.
  * \author Javier Burguete Tolosa.
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
-#ifndef UTILS__H
-#define UTILS__H 1
+#ifndef JET__H
+#define JET__H 1
 
-double vector_module (double x, double y, double z);
-double xml_node_get_float (xmlNode * node, const xmlChar * prop,
-                           int *error_code);
-double xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop,
-                                        double default_value, int *error_code);
+/**
+ * \struct 
+ * \brief struct to define the main jet of a sprinkler.
+ */
+typedef struct
+{
+  double a[5];                  ///< interpolation coefficients.
+} Jet;
+
+double jet_height (Jet * j, double x);
+int jet_open_file (Jet * j, FILE * file);
+void jet_open_console (Jet * j);
+int jet_open_xml (Jet * j, xmlNode * node);
+void trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j, FILE * file);
+
+#if HAVE_GTK
+
+/**
+ * \struct DialogJet
+ * \brief dialog to set the data of a sprinkler main jet.
+ */
+typedef struct
+{
+  GtkLabel *label_a[5];         ///< array of a GtkLabels.
+  GtkSpinButton *spin_a[5];     ///< array of a GtkSpinButtons.
+  GtkGrid *grid;                ///< GtkGrid to pack the widgets.
+  GtkDialog *window;            ///< GtkDialog to show the widgets.
+} DialogJet;
+
+void dialog_jet_new (Jet * j);
+
+#endif
 
 #endif

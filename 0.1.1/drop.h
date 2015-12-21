@@ -58,8 +58,8 @@ extern double drop_velocity;
 extern double drop_horizontal_angle;
 extern double drop_vertical_angle;
 extern double drop_drag_coefficient;
-extern double (*drag_axis_ratio) (Drop *d, Air *a, double v);
-extern double (*drop_drag) (Drop *d, Air *a, double v);
+extern double (*drag_axis_ratio) (Drop * d, Air * a, double v);
+extern double (*drop_drag) (Drop * d, Air * a, double v);
 
 double water_compressibility (double t);
 double water_density (Air * a);
@@ -67,12 +67,12 @@ double water_surface_tension (double kelvin);
 void drop_init (Drop * d, Air * a);
 int drop_open_file (Drop * d, Air * a, FILE * file);
 void drop_open_console (Drop * d, Air * a);
-int drop_open_xml (Drop *d, Air *a, xmlNode *node);
-double drag_axis_ratio_Burguete (Drop *d, Air *a, double v);
-double drop_drag_constant (Drop *d, Air *a, double v);
-double drop_drag_sphere (Drop *d, Air *a, double v);
-double drop_drag_ovoid (Drop *d, Air *a, double v);
-double drop_move (Drop * d, Air *a);
+int drop_open_xml (Drop * d, Air * a, xmlNode * node);
+double drag_axis_ratio_Burguete (Drop * d, Air * a, double v);
+double drop_drag_constant (Drop * d, Air * a, double v);
+double drop_drag_sphere (Drop * d, Air * a, double v);
+double drop_drag_ovoid (Drop * d, Air * a, double v);
+double drop_move (Drop * d, Air * a);
 
 #if HAVE_GTK
 

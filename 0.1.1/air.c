@@ -33,6 +33,7 @@ OF SUCH DAMAGE.
  * \author Javier Burguete Tolosa.
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
@@ -93,7 +94,7 @@ air_print (Air * a)
   printf ("Air:\n\ttemperature=%lg\n\tpressure=%lg\n\thumidity=%lg\n\t"
           "density=%lg\n\tviscosity=%le\n",
           a->temperature, a->pressure, a->humidity, a->density,
-		  a->dynamic_viscosity);
+          a->dynamic_viscosity);
 }
 
 /*
@@ -181,33 +182,33 @@ air_open_xml (Air * a, xmlNode * node)
   if (xmlStrcmp (node->name, XML_AIR))
     return 0;
   air_pressure
-	= xml_node_get_float_with_default (node, XML_PRESSURE, AIR_PRESSURE, &k);
-  if (k != 1)
+    = xml_node_get_float_with_default (node, XML_PRESSURE, AIR_PRESSURE, &k);
+  if (!k)
     return 0;
   air_temperature
     = xml_node_get_float_with_default (node, XML_TEMPERATURE, AIR_TEMPERATURE,
-			                           &k);
-  if (k != 1)
+                                       &k);
+  if (!k)
     return 0;
   air_humidity
-	= xml_node_get_float_with_default (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
-  if (k != 1)
+    = xml_node_get_float_with_default (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
+  if (!k)
     return 0;
   air_velocity
-	= xml_node_get_float_with_default (node, XML_VELOCITY, WIND_VELOCITY, &k);
-  if (k != 1)
+    = xml_node_get_float_with_default (node, XML_VELOCITY, WIND_VELOCITY, &k);
+  if (!k)
     return 0;
   air_angle = xml_node_get_float_with_default (node, XML_ANGLE, WIND_ANGLE, &k);
-  if (k != 1)
+  if (!k)
     return 0;
   air_height
-	= xml_node_get_float_with_default (node, XML_HEIGHT, WIND_HEIGHT, &k);
-  if (k != 1)
+    = xml_node_get_float_with_default (node, XML_HEIGHT, WIND_HEIGHT, &k);
+  if (!k)
     return 0;
   air_uncertainty
-	= xml_node_get_float_with_default (node, XML_UNCERTAINTY, WIND_UNCERTAINTY,
-		                               &k);
-  if (k != 1)
+    = xml_node_get_float_with_default (node, XML_UNCERTAINTY, WIND_UNCERTAINTY,
+                                       &k);
+  if (!k)
     return 0;
   air_init (a);
   return 1;

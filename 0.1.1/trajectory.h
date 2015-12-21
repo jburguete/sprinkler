@@ -42,17 +42,23 @@ OF SUCH DAMAGE.
  */
 typedef struct
 {
-  Drop drop[1]; ///< drop data.
-  double t; ///< time.
-  double dt; ///< numerical time step size.
+  Drop drop[1];                 ///< drop data.
+  double t;                     ///< time.
+  double dt;                    ///< numerical time step size.
+  double cfl;                   ///< stability number.
+  double bed_level;             ///< bed level.
+  double jet_length;            ///< length of the exiting jet.
 } Trajectory;
 
-extern double bed_level;
-
-void trajectory_init_sprinkler (Trajectory *t, Sprinkler *s);
-int trajectory_open_file (Trajectory * t, FILE * file);
-void trajectory_open_console (Trajectory * t);
-void trajectory_jet (Trajectory * t, Sprinkler * s);
+int trajectory_open_file (Trajectory * t, Air * a, FILE * file);
+void trajectory_open_console (Trajectory * t, Air * a);
+int trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node);
+void trajectory_jet (Trajectory * t);
 void trajectory_runge_kutta_4 (Trajectory * t, Air * a);
+void trajectory_impact_correction (Trajectory * t, Air * a);
+void trajectory_initial_correction (Trajectory * t, Air * a);
+void trajectory_write (Trajectory * t, FILE * file);
+void trajectory_calculate (Trajectory * t, Air * a, FILE * file);
+void trajectory_invert (Trajectory * t, Air * a, FILE * file);
 
 #endif

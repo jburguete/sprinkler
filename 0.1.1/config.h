@@ -53,10 +53,22 @@ OF SUCH DAMAGE.
 #define WIND_VELOCITY 0.        ///< wind velocity.
 
 // XML labels
+#define XML_A0               (const xmlChar*)"a0"
+  ///< a0 XML label.
+#define XML_A1               (const xmlChar*)"a1"
+  ///< a1 XML label.
+#define XML_A2               (const xmlChar*)"a2"
+  ///< a2 XML label.
+#define XML_A3               (const xmlChar*)"a3"
+  ///< a3 XML label.
+#define XML_A4               (const xmlChar*)"a4"
+  ///< a4 XML label.
 #define XML_AIR              (const xmlChar*)"air"
   ///< air XML label.
 #define XML_ANGLE            (const xmlChar*)"angle"
   ///< angle XML label.
+#define XML_BED_LEVEL        (const xmlChar*)"bed_level"
+  ///< bed_level XML label.
 #define XML_CFL              (const xmlChar*)"cfl"
   ///< cfl XML label.
 #define XML_DIAMETER         (const xmlChar*)"diameter"
@@ -65,14 +77,24 @@ OF SUCH DAMAGE.
   ///< drop XML label.
 #define XML_DROP             (const xmlChar*)"drop"
   ///< drop XML label.
+#define XML_DT               (const xmlChar*)"dt"
+  ///< dt XML label.
 #define XML_HEIGHT           (const xmlChar*)"height"
   ///< height XML label.
 #define XML_HORIZONTAL_ANGLE (const xmlChar*)"horizontal_angle"
   ///< horizontal angle XML label.
 #define XML_HUMIDITY         (const xmlChar*)"humidity"
   ///< humidity XML label.
+#define XML_INVERT           (const xmlChar*)"invert"
+  ///< invert XML label.
+#define XML_JET              (const xmlChar*)"jet"
+  ///< jet XML label.
+#define XML_JET_LENGTH       (const xmlChar*)"jet_length"
+  ///< jet_length XML label.
 #define XML_PRESSURE         (const xmlChar*)"pressure"
   ///< pressure XML label.
+#define XML_SPRINKLER        (const xmlChar*)"sprinkler"
+  ///< sprinkler XML label.
 #define XML_TEMPERATURE      (const xmlChar*)"temperature"
   ///< temperature XML label.
 #define XML_TRAJECTORY       (const xmlChar*)"trajectory"

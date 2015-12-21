@@ -33,14 +33,50 @@ OF SUCH DAMAGE.
  * \author Javier Burguete Tolosa.
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <gsl/gsl_rng.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
 #endif
 #include "config.h"
+#include "utils.h"
+#include "air.h"
+#include "drop.h"
+#include "trajectory.h"
 #include "sprinkler.h"
+
+/**
+ * \fn void trajectory_init_with_sprinkler (Trajectory *t, Sprinkler *s)
+ * \brief function to init drop trajectory variables from sprinkler data.
+ * \param t
+ * \brief Trajectory struct.
+ * \param s
+ * \brief Sprinkler struct.
+ */
+void
+trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
+{
+  Drop *d;
+  double v, k2, k3;
+  d = t->drop;
+  t->t = 0.;
+  d->r[0] = s->x;
+  d->r[1] = s->y;
+  d->r[2] = s->z;
+  v = sqrt (2. * s->pressure / d->density);
+  k2 = s->horizontal_angle * M_PI / 180.;
+  k3 = s->vertical_angle * M_PI / 180.;
+  d->v[0] = v * cos (k3) * cos (k2);
+  d->v[1] = v * cos (k3) * sin (k2);
+  d->v[2] = v * sin (k3);
+  t->jet_length = s->jet_length;
+  printf ("Time step size: %le\n", t->dt);
+  printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
+  printf ("Drop velocity: (%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
+}
 
 /**
  * \fn void sprinkler_open_file (Sprinkler *s, FILE *file)
@@ -60,8 +96,7 @@ sprinkler_open_file (Sprinkler * s, FILE * file)
                  &(s->z),
                  &(s->pressure),
                  &(s->vertical_angle),
-                 &(s->horizontal_angle),
-                 &(s->jet_length), &(s->diameter)) == 8;
+                 &(s->horizontal_angle), &(s->jet_length), &(s->diameter)) == 8;
 }
 
 /**
@@ -91,6 +126,50 @@ sprinkler_open_console (Sprinkler * s)
   scanf ("%lf", &(s->diameter));
 }
 
+/**
+ * \fn int sprinkler_open_xml (Sprinkler *s, xmlNode *node)
+ * \brief function to open a Sprinkler struct on a XML node.
+ * \param s
+ * \brief Sprinkler struct.
+ * \param node
+ * \brief XML node.
+ * \return 1 on success, 0 on error.
+ */
+int
+sprinkler_open_xml (Sprinkler * s, xmlNode * node)
+{
+  int k;
+  if (xmlStrcmp (node->name, XML_SPRINKLER))
+    return 0;
+  s->x = xml_node_get_float_with_default (node, XML_X, 0., &k);
+  if (!k)
+    return 0;
+  s->y = xml_node_get_float_with_default (node, XML_Y, 0., &k);
+  if (!k)
+    return 0;
+  s->z = xml_node_get_float_with_default (node, XML_Z, 0., &k);
+  if (!k)
+    return 0;
+  s->pressure = xml_node_get_float (node, XML_PRESSURE, &k);
+  if (!k)
+    return 0;
+  s->vertical_angle = xml_node_get_float (node, XML_VERTICAL_ANGLE, &k);
+  if (!k)
+    return 0;
+  s->horizontal_angle
+    = xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
+  if (!k)
+    return 0;
+  s->jet_length
+    = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
+  if (!k)
+    return 0;
+  s->diameter = xml_node_get_float (node, XML_DIAMETER, &k);
+  if (!k)
+    return 0;
+  return 1;
+}
+
 #if HAVE_GTK
 
 /**
@@ -106,31 +185,31 @@ dialog_sprinkler_new (Sprinkler * s)
 
   dlg->label_x = (GtkLabel *) gtk_label_new ("x");
   dlg->spin_x = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (-1000., 1000., 0.001);
+    gtk_spin_button_new_with_range (-1000., 1000., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->x);
   dlg->label_y = (GtkLabel *) gtk_label_new ("y");
   dlg->spin_y = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (-1000., 1000., 0.001);
+    gtk_spin_button_new_with_range (-1000., 1000., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->y);
   dlg->label_z = (GtkLabel *) gtk_label_new ("z");
   dlg->spin_z = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (-1000., 1000., 0.001);
+    gtk_spin_button_new_with_range (-1000., 1000., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->z);
   dlg->label_pressure = (GtkLabel *) gtk_label_new ("pressure");
   dlg->spin_pressure = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (100000., 600000., 1.);
+    gtk_spin_button_new_with_range (100000., 600000., 1.);
   gtk_spin_button_set_value (dlg->spin_diameter, s->pressure);
   dlg->label_vertical_angle = (GtkLabel *) gtk_label_new ("vertical_angle");
   dlg->spin_vertical_angle = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (-360., 360., 0.1);
+    gtk_spin_button_new_with_range (-360., 360., 0.1);
   gtk_spin_button_set_value (dlg->spin_diameter, s->vertical_angle);
   dlg->label_horizontal_angle = (GtkLabel *) gtk_label_new ("horizontal_angle");
   dlg->spin_horizontal_angle = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (-360., 360., 0.1);
+    gtk_spin_button_new_with_range (-360., 360., 0.1);
   gtk_spin_button_set_value (dlg->spin_diameter, s->horizontal_angle);
   dlg->label_jet_length = (GtkLabel *) gtk_label_new ("jet_length");
   dlg->spin_jet_length = (GtkSpinButton *)
-	gtk_spin_button_new_with_range (0., 10., 0.001);
+    gtk_spin_button_new_with_range (0., 10., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->jet_length);
   dlg->label_diameter = (GtkLabel *) gtk_label_new ("Diámetro de la boquilla");
   dlg->spin_diameter = (GtkSpinButton *)
@@ -147,13 +226,13 @@ dialog_sprinkler_new (Sprinkler * s)
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_pressure, 0, 3, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_pressure, 1, 3, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_vertical_angle,
-		           0, 4, 1, 1);
+                   0, 4, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_vertical_angle,
-		           1, 4, 1, 1);
+                   1, 4, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_horizontal_angle,
-		           0, 5, 1, 1);
+                   0, 5, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_horizontal_angle,
-		           1, 5, 1, 1);
+                   1, 5, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_jet_length, 0, 6, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_jet_length, 1, 6, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_diameter, 0, 7, 1, 1);
@@ -177,7 +256,7 @@ dialog_sprinkler_new (Sprinkler * s)
       s->pressure = gtk_spin_button_get_value (dlg->spin_pressure);
       s->vertical_angle = gtk_spin_button_get_value (dlg->spin_vertical_angle);
       s->horizontal_angle
-		= gtk_spin_button_get_value (dlg->spin_horizontal_angle);
+        = gtk_spin_button_get_value (dlg->spin_horizontal_angle);
       s->jet_length = gtk_spin_button_get_value (dlg->spin_jet_length);
       s->diameter = gtk_spin_button_get_value (dlg->spin_diameter);
     }

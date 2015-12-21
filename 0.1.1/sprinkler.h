@@ -42,18 +42,20 @@ OF SUCH DAMAGE.
  */
 typedef struct
 {
-  double x; ///< position x component.
-  double y; ///< position y component.
-  double z; ///< position z component.
-  double pressure; ///< water pressure.
-  double vertical_angle;///< vertical angle.
-  double horizontal_angle; ///< horizontal angle.
-  double jet_length; ///< length of the exiting jet.
-  double diameter; ///< nozzle diameter.
+  double x;                     ///< position x component.
+  double y;                     ///< position y component.
+  double z;                     ///< position z component.
+  double pressure;              ///< water pressure.
+  double vertical_angle;        ///< vertical angle.
+  double horizontal_angle;      ///< horizontal angle.
+  double jet_length;            ///< length of the exiting jet.
+  double diameter;              ///< nozzle diameter.
 } Sprinkler;
 
+void trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s);
 int sprinkler_open_file (Sprinkler * s, FILE * file);
 void sprinkler_open_console (Sprinkler * s);
+int sprinkler_open_xml (Sprinkler * s, xmlNode * node);
 
 #if HAVE_GTK
 
@@ -63,27 +65,27 @@ void sprinkler_open_console (Sprinkler * s);
  */
 typedef struct
 {
-  GtkLabel *label_x;     ///< x GtkLabel.
-  GtkLabel *label_y;     ///< y GtkLabel.
-  GtkLabel *label_z;     ///< z GtkLabel.
+  GtkLabel *label_x;            ///< x GtkLabel.
+  GtkLabel *label_y;            ///< y GtkLabel.
+  GtkLabel *label_z;            ///< z GtkLabel.
   GtkLabel *label_pressure;     ///< pressure GtkLabel.
-  GtkLabel *label_vertical_angle;     ///< vertical angle GtkLabel.
+  GtkLabel *label_vertical_angle;       ///< vertical angle GtkLabel.
   GtkLabel *label_horizontal_angle;     ///< horizontal angle GtkLabel.
-  GtkLabel *label_jet_length;     ///< jet length GtkLabel.
+  GtkLabel *label_jet_length;   ///< jet length GtkLabel.
   GtkLabel *label_diameter;     ///< nozzle diameter GtkLabel.
-  GtkSpinButton *spin_x;     ///< x GtkSpinButton.
-  GtkSpinButton *spin_y;     ///< y GtkSpinButton.
-  GtkSpinButton *spin_z;     ///< z GtkSpinButton.
-  GtkSpinButton *spin_pressure;     ///< pressure GtkSpinButton.
-  GtkSpinButton *spin_vertical_angle;     ///< vertical angle GtkSpinButton.
-  GtkSpinButton *spin_horizontal_angle;     ///< horizontal angle GtkSpinButton.
-  GtkSpinButton *spin_jet_length;     ///< jet length GtkSpinButton.
-  GtkSpinButton *spin_diameter;     ///< nozzle diameter GtkSpinButton.
+  GtkSpinButton *spin_x;        ///< x GtkSpinButton.
+  GtkSpinButton *spin_y;        ///< y GtkSpinButton.
+  GtkSpinButton *spin_z;        ///< z GtkSpinButton.
+  GtkSpinButton *spin_pressure; ///< pressure GtkSpinButton.
+  GtkSpinButton *spin_vertical_angle;   ///< vertical angle GtkSpinButton.
+  GtkSpinButton *spin_horizontal_angle; ///< horizontal angle GtkSpinButton.
+  GtkSpinButton *spin_jet_length;       ///< jet length GtkSpinButton.
+  GtkSpinButton *spin_diameter; ///< nozzle diameter GtkSpinButton.
   GtkGrid *grid;                ///< GtkGrid to pack the widgets.
   GtkDialog *window;            ///< GtkDialog to show the widgets.
 } DialogSprinkler;
 
-void dialog_sprinkler_new (Sprinkler *s);
+void dialog_sprinkler_new (Sprinkler * s);
 
 #endif
 

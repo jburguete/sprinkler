@@ -72,10 +72,10 @@ xml_node_get_float (xmlNode * node, const xmlChar * prop, int *error_code)
   const xmlChar *buffer;
   double x;
   if (!xmlHasProp (node, prop))
-  {
-    *error_code = 0;
-    return 0.;
-  }
+    {
+      *error_code = 0;
+      return 0.;
+    }
   buffer = xmlGetProp (node, prop);
   if (!buffer || sscanf ((char *) buffer, "%lf", &x) != 1)
     {
@@ -101,8 +101,8 @@ xml_node_get_float (xmlNode * node, const xmlChar * prop, int *error_code)
  * \return floating point number.
  */
 double
-xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop, double default_value,
-                                 int *error_code)
+xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop,
+                                 double default_value, int *error_code)
 {
   const xmlChar *buffer;
   double x;

@@ -3,30 +3,37 @@ LIBS = @LDFLAGS@ @LIBS@ @XML_LIBS@ @GSL_CFLAGS@
 CC = @CC@ @ARCH@ @LTO@ @STD@
 EXE = @EXE@
 
-trajectory = trajectory$(EXE)
-drops = drops$(EXE)
+sprinkler = sprinkler$(EXE)
 invert = invert$(EXE)
+drops = drops$(EXE)
+obj = trajectory.o drop.o air.o utils.o
 
-all: $(trajectory) $(drops) $(invert)
+all: $(sprinkler) $(invert) $(drops)
 
-$(trajectory): trajectory.c sprinkler.o drop.o air.o utils.o Makefile
-	$(CC) $(CFLAGS) trajectory.c sprinkler.o drop.o air.o utils.o $(LIBS) \
-		-o $(trajectory)
+$(sprinkler): sprinkler_drop.c sprinkler.o $(obj) Makefile
+	$(CC) $(CFLAGS) sprinkler_drop.c sprinkler.o $(obj) $(LIBS) -o $(sprinkler)
+
+$(invert): invert.c jet.o $(obj) Makefile
+	$(CC) $(CFLAGS) invert.c jet.o $(obj) $(LIBS) -o $(invert)
 
 $(drops): drops.c Makefile
 	$(CC) $(CFLAGS) drops.c $(LIBS) -o $(drops)
 
-$(invert): invert.c drop.o Makefile
-	$(CC) $(CFLAGS) invert.c drop.o $(LIBS) -o $(invert)
-
-utils.o: utils.c utils.h Makefile
+utils.o: utils.c utils.h config.h Makefile
 	$(CC) $(CFLAGS) utils.c -c -o utils.o
 
-air.o: air.c air.h utils.h Makefile
+air.o: air.c air.h utils.h config.h Makefile
 	$(CC) $(CFLAGS) air.c -c -o air.o
 
-drop.o: drop.c drop.h air.h utils.h Makefile
+drop.o: drop.c drop.h air.h utils.h config.h Makefile
 	$(CC) $(CFLAGS) drop.c -c -o drop.o
 
-sprinkler.o: sprinkler.c sprinkler.h Makefile
+trajectory.o: trajectory.c trajectory.h drop.h air.h utils.h config.h Makefile
+	$(CC) $(CFLAGS) trajectory.c -c -o trajectory.o
+
+sprinkler.o: sprinkler.c sprinkler.h trajectory.h drop.h air.h utils.h \
+	config.h Makefile
 	$(CC) $(CFLAGS) sprinkler.c -c -o sprinkler.o
+
+jet.o: jet.c jet.h trajectory.h drop.h utils.h air.h config.h Makefile
+	$(CC) $(CFLAGS) jet.c -c -o jet.o
