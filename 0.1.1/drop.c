@@ -34,6 +34,7 @@ OF SUCH DAMAGE.
  * \author Javier Burguete Tolosa.
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
@@ -42,29 +43,23 @@ OF SUCH DAMAGE.
 #include <gtk/gtk.h>
 #endif
 #include "config.h"
+#include "utils.h"
 #include "air.h"
 #include "drop.h"
 
 double drop_diameter;           ///< drop diameter.
-double (*drop_drag) (double Reynolds, double deformation);
-  ///< pointer to the function to calculate the drag resistance coefficient.
-
-/**
- * \fn double vector_module(double x, double y, double z)
- * \brief function to calculate a 3D vector module.
- * \param x
- * \brief x vector coordenate.
- * \param y
- * \brief y vector coordenate.
- * \param z
- * \brief z vector coordenate.
- * \return vector module.
- */
-double
-vector_module (double x, double y, double z)
-{
-  return sqrt (x * x + y * y + z * z);
-}
+double drop_velocity;           ///< drop initial velocity.
+double drop_horizontal_angle;
+  ///< horizontal angle of the drop initial velocity.
+double drop_vertical_angle;
+  ///< vertical angle of the drop initial velocity.
+double drop_drag_coefficient;
+  ///< drop drag resistance coefficient for the constant model.
+double (*drag_axis_ratio) (Drop *d, Air *a, double v);
+  ///< pointer to the function to calculate the drop axis ratio.
+double (*drop_drag) (Drop *d, Air *a, double v);
+  ///< pointer to the function to calculate the drop drag resistance
+  ///< coefficient.
 
 /**
  * \fn double water_compressibility (double t)
@@ -130,7 +125,7 @@ water_surface_tension (double kelvin)
  * \fn void drop_init (Drop * d, Air * a)
  * \brief function to init the drop variables.
  * \param d
- * \brief drop struct.
+ * \brief Drop struct.
  * \param a
  * \brief air struct.
  */
@@ -139,16 +134,16 @@ drop_init (Drop * d, Air * a)
 {
   d->diameter = drop_diameter;
   d->density = water_density (a);
-  d->tension = water_surface_tension (a->kelvin);
+  d->surface_tension = water_surface_tension (a->kelvin);
   printf ("Drop density = %le\n", d->density);
-  printf ("Drop surface tension = %le\n", d->tension);
+  printf ("Drop surface tension = %le\n", d->surface_tension);
 }
 
 /**
  * \fn void drop_open_file (Drop * d, Air * a, FILE * file)
- * \brief function to open a drop struct in a file.
+ * \brief function to open a Drop struct in a file.
  * \param d
- * \brief drop struct.
+ * \brief Drop struct.
  * \param a
  * \brief air struct.
  * \param file
@@ -166,13 +161,14 @@ drop_open_file (Drop * d, Air * a, FILE * file)
 
 /**
  * \fn void drop_open_console (Drop * d, Air * a)
- * \brief function to input a drop struct in console.
+ * \brief function to input a Drop struct in console.
  * \param d
- * \brief drop struct.
+ * \brief Drop struct.
  * \param a
  * \brief air struct.
  */
-void drop_open_console (Drop * d, Air * a)
+void
+drop_open_console (Drop * d, Air * a)
 {
   printf ("Drop diameter: ");
   scanf ("%lf", &drop_diameter);
@@ -180,17 +176,106 @@ void drop_open_console (Drop * d, Air * a)
 }
 
 /**
- * \fn double drop_drag_sphere (double Reynolds, double deformation)
+ * \fn int drop_open_xml (Drop *d, Air *a, xmlNode *node)
+ * \brief function to input a Drop struct on a XML node.
+ * \param d
+ * \brief Drop struct.
+ * \param node
+ * \brief XML node.
+ * \return 1 on success, 0 on error.
+ */
+int
+drop_open_xml (Drop *d, Air *a, xmlNode *node)
+{
+  int k;
+  double sh, ch, sv, cv;
+  if (xmlStrcmp (node->name, XML_DROP))
+    return 0;
+  drop_diameter = xml_node_get_float (node, XML_DIAMETER, &k);
+  if (!k)
+    return 0;
+  d->r[0] = xml_node_get_float_with_default (node, XML_X, 0., &k);
+  if (!k)
+    return 0;
+  d->r[1] = xml_node_get_float_with_default (node, XML_Y, 0., &k);
+  if (!k)
+    return 0;
+  d->r[2] = xml_node_get_float_with_default (node, XML_Z, 0., &k);
+  if (!k)
+    return 0;
+  drop_velocity = xml_node_get_float_with_default (node, XML_VELOCITY, 0., &k);
+  if (!k)
+    return 0;
+  drop_horizontal_angle
+	= xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
+  if (!k)
+    return 0;
+  drop_vertical_angle
+	= xml_node_get_float_with_default (node, XML_VERTICAL_ANGLE, 0., &k);
+  if (!k)
+    return 0;
+  sincos (M_PI / 180. * drop_horizontal_angle, &sh, &ch);
+  sincos (M_PI / 180. * drop_vertical_angle, &sv, &cv);
+  d->v[0] = drop_velocity * cv * ch;
+  d->v[1] = drop_velocity * cv * sh;
+  d->v[2] = drop_velocity * sv;
+  return 1;
+}
+
+/**
+ * \fn double drag_axis_ratio_Burguete (Drop *d, Air *a, double v)
+ * \brief function to calculate the axis ratio of a drop according to Burguete
+ *   et al. (2016).
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ * \param v
+ * \brief drop velocity.
+ * \return axis ratio.
+ */
+double
+drag_axis_ratio_Burguete (Drop *d, Air *a, double v)
+{
+  double Weber;
+  Weber = 0.25 * a->density * v * v * d->diameter / d->surface_tension;
+  return 1. - 0.1742 * Weber;
+}
+
+/**
+ * \fn drop_drag_constant (Drop *d, Air *a, double v)
+ * \brief function to get a fixed drop drag resistance coefficient.
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ * \param v
+ * \brief drop velocity.
+ * \return fixed drop drag resistance coefficient.
+ */
+double
+drop_drag_constant (Drop *d, Air *a, double v)
+{
+  return drop_drag_coefficient;
+}
+
+/**
+ * \fn drop_drag_sphere (Drop *d, Air *a, double v)
  * \brief function to calculate the drop drag resistance coefficient according
  *   to Fukui et al. (1980).
- * \param Reynolds
- * \brief Reynolds number.
- * \param deformation
- * \brief axis ratio.
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ * \param v
+ * \brief drop velocity.
  * \return drop drag resistance coefficient of a solid smooth sphere.
  */
-double drop_drag_sphere (double Reynolds, double deformation)
+double
+drop_drag_sphere (Drop *d, Air *a, double v)
 {
+  double Reynolds;
+  Reynolds = v * d->diameter / a->kinematic_viscosity;
   if (Reynolds == 0.)
     return 0.;
   if (Reynolds >= 1440.)
@@ -200,9 +285,63 @@ double drop_drag_sphere (double Reynolds, double deformation)
   return 33.3 / Reynolds - 0.0033 * Reynolds + 1.2;
 }
 
+/**
+ * \fn drop_drag_ovoid (Drop *d, Air *a, double v)
+ * \brief function to calculate the drop drag resistance coefficient according
+ *   to Burguete et al. (2016).
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ * \param v
+ * \brief drop velocity.
+ * \return drop drag resistance coefficient of an ovoid drop.
+ */
+double
+drop_drag_ovoid (Drop *d, Air *a, double v)
+{
+  drop_axis_ratio (d, a, v);
+  return drop_drag_sphere (d, a, v) * (3.709 + d->axis_ratio * (- 5.519
+	+ 2.731 * d->axis_ratio));
+}
+
+/**
+ * \fn double drop_move (Drop * d, Air *a)
+ * \brief function to calculate drag resistance factor and the acceleration
+ *   vector of a drop.
+ * \param d
+ * \brief drop struct.
+ * \param a
+ * \brief air struct.
+ * \return drag resistance factor.
+ */
+double
+drop_move (Drop * d, Air *a)
+{
+  double vrx, vry, v;
+  vrx = d->v[0] - a->u;
+  vry = d->v[1] - a->v;
+  v = vector_module (vrx, vry, d->v[2]);
+  d->drag =
+	-0.75 * v * drop_drag (d, a, v) * a->density / (d->density * d->diameter);
+  d->a[0] = d->drag * vrx;
+  d->a[1] = d->drag * vry;
+  d->a[2] = - (1. - a->density / d->density) * G + d->drag * d->v[2];
+  return -d->drag;
+}
+
 #if HAVE_GTK
 
-void dialog_drop_new (Drop * d, Air * a)
+/**
+ * \fn void dialog_drop_new (Drop * d, Air * a)
+ * \brief function to set the drop data in a GtkDialog.
+ * \param d
+ * \brief Drop struct.
+ * \param a
+ * \brief Air struct.
+ */
+void
+dialog_drop_new (Drop * d, Air * a)
 {
   DialogDrop dlg[1];
 
@@ -221,9 +360,9 @@ void dialog_drop_new (Drop * d, Air * a)
                                                GTK_STOCK_OK, GTK_RESPONSE_OK,
                                                GTK_STOCK_CANCEL,
                                                GTK_RESPONSE_CANCEL, NULL);
-  gtk_box_pack_start_defaults ((GtkBox *) dlg->window->vbox,
-                               (GtkWidget *) dlg->table);
-  gtk_widget_show_all ((GtkWidget *) dlg->window);
+  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (dlg->window)),
+                     GTK_WIDGET (dlg->grid));
+  gtk_widget_show_all (GTK_WIDGET (dlg->window));
 
   if (gtk_dialog_run (dlg->window) == GTK_RESPONSE_OK)
     {

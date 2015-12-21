@@ -49,7 +49,8 @@ typedef struct
   double density;               ///< atmospheric density.
   double saturation_pressure;   ///< atmospheric saturation vapour pressure.
   double vapour_pressure;       ///< atmospheric vapour pressure.
-  double viscosity;             ///< atmospheric viscosity.
+  double dynamic_viscosity;     ///< dynamic atmospheric viscosity.
+  double kinematic_viscosity;   ///< kinematic atmospheric viscosity.
   double velocity;              ///< wind velocity.
   double angle;                 ///< wind azimuth angle (in degrees).
   double height;                ///< reference height to measure the wind.

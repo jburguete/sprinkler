@@ -9,8 +9,9 @@ invert = invert$(EXE)
 
 all: $(trajectory) $(drops) $(invert)
 
-$(trajectory): trajectory.c air.o drop.o Makefile
-	$(CC) $(CFLAGS) trajectory.c air.o drop.o $(LIBS) -o $(trajectory)
+$(trajectory): trajectory.c sprinkler.o drop.o air.o utils.o Makefile
+	$(CC) $(CFLAGS) trajectory.c sprinkler.o drop.o air.o utils.o $(LIBS) \
+		-o $(trajectory)
 
 $(drops): drops.c Makefile
 	$(CC) $(CFLAGS) drops.c $(LIBS) -o $(drops)
@@ -18,8 +19,14 @@ $(drops): drops.c Makefile
 $(invert): invert.c drop.o Makefile
 	$(CC) $(CFLAGS) invert.c drop.o $(LIBS) -o $(invert)
 
-air.o: air.c air.h Makefile
+utils.o: utils.c utils.h Makefile
+	$(CC) $(CFLAGS) utils.c -c -o utils.o
+
+air.o: air.c air.h utils.h Makefile
 	$(CC) $(CFLAGS) air.c -c -o air.o
 
-drop.o: drop.c drop.h air.h Makefile
+drop.o: drop.c drop.h air.h utils.h Makefile
 	$(CC) $(CFLAGS) drop.c -c -o drop.o
+
+sprinkler.o: sprinkler.c sprinkler.h Makefile
+	$(CC) $(CFLAGS) sprinkler.c -c -o sprinkler.o

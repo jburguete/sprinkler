@@ -41,6 +41,7 @@ OF SUCH DAMAGE.
 #include <gtk/gtk.h>
 #endif
 #include "config.h"
+#include "utils.h"
 #include "air.h"
 
 double air_temperature = AIR_TEMPERATURE;       ///< air temperature in Celsius.
@@ -52,30 +53,12 @@ double air_angle = WIND_ANGLE;  ///< wind angle.
 double air_height = WIND_HEIGHT;
   ///< reference height to measure the wind velocity.
 
-double
-xml_node_get_float (xmlNode * node, const xmlChar * prop, double default_value,
-                    int *error_code)
-{
-  const xmlChar *buffer;
-  double x;
-  *error_code = 1;
-  if (!xmlHasProp (node, prop))
-    return default_value;
-  buffer = xmlGetProp (node, prop);
-  if (!buffer || sscanf ((char *) buffer, "%lf", &x) != 1)
-    {
-      *error_code = 0;
-      return 0;
-    }
-  return x;
-}
-
 /**
  * \fn double air_viscosity (Air *a)
  * \brief function to calculate the air dynamic viscosity with the Sutherland
  *   equation.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  * \return air dynamic viscosity.
  */
 double
@@ -89,7 +72,7 @@ air_viscosity (Air * a)
  * \brief function to calculate the water saturation pressure in air with the
  *   Antoine equation.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  * \return water saturation pressure in air.
  */
 double
@@ -109,14 +92,15 @@ air_print (Air * a)
 {
   printf ("Air:\n\ttemperature=%lg\n\tpressure=%lg\n\thumidity=%lg\n\t"
           "density=%lg\n\tviscosity=%le\n",
-          a->temperature, a->pressure, a->humidity, a->density, a->viscosity);
+          a->temperature, a->pressure, a->humidity, a->density,
+		  a->dynamic_viscosity);
 }
 
 /*
  * \fn void air_init (Air * a)
  * \brief function to init atmospheric variables.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  */
 void
 air_init (Air * a)
@@ -130,20 +114,21 @@ air_init (Air * a)
   a->vx = a->velocity * cos (a->angle);
   a->vy = a->velocity * sin (a->angle);
   a->kelvin = a->temperature + KELVIN_TEMPERATURE;
-  a->viscosity = air_viscosity (a);
+  a->dynamic_viscosity = air_viscosity (a);
   a->saturation_pressure = air_saturation_pressure (a);
   a->vapour_pressure = a->saturation_pressure * 0.01 * a->humidity;
   a->density = (AIR_MOLECULAR_MASS * a->pressure
                 + (WATER_MOLECULAR_MASS -
                    AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * a->kelvin);
+  a->kinematic_viscosity = a->dynamic_viscosity / a->density;
   air_print (a);
 }
 
 /**
  * \fn void air_open_file(Air *a, FILE *file)
- * \brief function to open an air struct in a file.
+ * \brief function to open an Air struct in a file.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  * \param file
  * \brief file.
  * \return 1 on success, 0 on error.
@@ -160,9 +145,9 @@ air_open_file (Air * a, FILE * file)
 
 /**
  * \fn void air_open_console(Air *a)
- * \brief function to input an air struct in console.
+ * \brief function to input an Air struct in console.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  */
 void
 air_open_console (Air * a)
@@ -182,9 +167,9 @@ air_open_console (Air * a)
 
 /**
  * \fn int air_open_xml (Air *a, xmlNode * node)
- * \brief function to open an air struct on a XML node.
+ * \brief function to open an Air struct on a XML node.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  * \param node
  * \brief XML node.
  * \return 1 on success, 0 on error.
@@ -195,27 +180,33 @@ air_open_xml (Air * a, xmlNode * node)
   int k;
   if (xmlStrcmp (node->name, XML_AIR))
     return 0;
-  air_pressure = xml_node_get_float (node, XML_PRESSURE, AIR_PRESSURE, &k);
+  air_pressure
+	= xml_node_get_float_with_default (node, XML_PRESSURE, AIR_PRESSURE, &k);
   if (k != 1)
     return 0;
   air_temperature
-    = xml_node_get_float (node, XML_TEMPERATURE, AIR_TEMPERATURE, &k);
+    = xml_node_get_float_with_default (node, XML_TEMPERATURE, AIR_TEMPERATURE,
+			                           &k);
   if (k != 1)
     return 0;
-  air_humidity = xml_node_get_float (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
+  air_humidity
+	= xml_node_get_float_with_default (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
   if (k != 1)
     return 0;
-  air_velocity = xml_node_get_float (node, XML_VELOCITY, WIND_VELOCITY, &k);
+  air_velocity
+	= xml_node_get_float_with_default (node, XML_VELOCITY, WIND_VELOCITY, &k);
   if (k != 1)
     return 0;
-  air_angle = xml_node_get_float (node, XML_ANGLE, WIND_ANGLE, &k);
+  air_angle = xml_node_get_float_with_default (node, XML_ANGLE, WIND_ANGLE, &k);
   if (k != 1)
     return 0;
-  air_height = xml_node_get_float (node, XML_HEIGHT, WIND_HEIGHT, &k);
+  air_height
+	= xml_node_get_float_with_default (node, XML_HEIGHT, WIND_HEIGHT, &k);
   if (k != 1)
     return 0;
   air_uncertainty
-    = xml_node_get_float (node, XML_UNCERTAINTY, WIND_UNCERTAINTY, &k);
+	= xml_node_get_float_with_default (node, XML_UNCERTAINTY, WIND_UNCERTAINTY,
+		                               &k);
   if (k != 1)
     return 0;
   air_init (a);
@@ -226,7 +217,7 @@ air_open_xml (Air * a, xmlNode * node)
  * \fn void air_wind_uncertainty (Air * a, gsl_rng *rng)
  * \brief function to generate a random wind.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  * \param rng
  * \brief GSL pseudo-random numbers generator struct.
  */
@@ -242,6 +233,12 @@ air_wind_uncertainty (Air * a, gsl_rng * rng)
 
 #if HAVE_GTK
 
+/**
+ * \fn void dialog_air_new (Air * a)
+ * \brief function to set the atmospheric variables in a GtkDialog.
+ * \param a
+ * \brief Air struct.
+ */
 void
 dialog_air_new (Air * a)
 {
@@ -296,9 +293,9 @@ dialog_air_new (Air * a)
                                                GTK_STOCK_OK, GTK_RESPONSE_OK,
                                                GTK_STOCK_CANCEL,
                                                GTK_RESPONSE_CANCEL, NULL);
-  gtk_box_pack_start_defaults ((GtkBox *) dlg->window->vbox,
-                               (GtkWidget *) dlg->table);
-  gtk_widget_show_all ((GtkWidget *) dlg->window);
+  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (dlg->window)),
+                     GTK_WIDGET (dlg->grid));
+  gtk_widget_show_all (GTK_WIDGET (dlg->window));
 
   if (gtk_dialog_run (dlg->window) == GTK_RESPONSE_OK)
     {

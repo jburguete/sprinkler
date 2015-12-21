@@ -41,213 +41,73 @@ OF SUCH DAMAGE.
 #include <gtk/gtk.h>
 #endif
 #include "config.h"
+#include "utils.h"
 #include "air.h"
 #include "drop.h"
+#include "sprinkler.h"
+#include "trajectory.h"
+
+double bed_level; ///< bed level.
 
 /**
- * \struct Sprinkler
- * \brief struct to define a sprinkler.
- */
-typedef struct
-{
-    /**
-	 * \var x
-	 * \brief position x component.
-	 * \var y
-	 * \brief position y component.
-	 * \var z
-	 * \brief position z component.
-	 * \var pressure
-	 * \brief water pressure.
-	 * \var vertical_angle
-	 * \brief vertical angle.
-	 * \var horizontal_angle
-	 * \brief horizontal angle.
-	 * \var jet_length
-	 * \brief length of the exiting jet.
-	 * \var bed_level
-	 * \brief bed level.
-	 */
-  double x, y, z, pressure, vertical_angle, horizontal_angle, jet_length,
-    bed_level;
-} Sprinkler;
-
-/**
- * \struct Trajectory
- * \brief struct to define a drop trajectory.
- */
-typedef struct
-{
-    /**
-	 * \var x
-	 * \brief position x component.
-	 * \var y
-	 * \brief position y component.
-	 * \var z
-	 * \brief position z component.
-	 * \var t
-	 * \brief time.
-	 * \var vx
-	 * \brief velocity x component.
-	 * \var vy
-	 * \brief velocity y component.
-	 * \var vz
-	 * \brief velocity z component.
-	 * \var ax
-	 * \brief acceleration x component.
-	 * \var ay
-	 * \brief acceleration y component.
-	 * \var az
-	 * \brief acceleration z component.
-	 * \var dt
-	 * \brief numerical time step size.
-	 * \var drag
-	 * \brief drag resistence factor.
-	 */
-  double x, y, z, t, vx, vy, vz, ax, ay, az, dt, drag;
-} Trajectory;
-
-/**
- * \fn void sprinkler_open(Sprinkler *s, FILE *file)
- * \brief function to open a sprinkler struct in a file.
+ * \fn void trajectory_init_sprinkler (Trajectory *t, Sprinkler *s)
+ * \brief function to init drop trajectory variables from sprinkler data.
+ * \param t
+ * \brief Trajectory struct.
  * \param s
- * \brief sprinkler struct.
- * \param file
- * \brief file.
- * \return 1 on success, 0 on error.
- */
-int
-sprinkler_open (Sprinkler * s, FILE * file)
-{
-  return fscanf (file, "%le%le%le%le%le%le%le%le",
-                 &(s->x),
-                 &(s->y),
-                 &(s->z),
-                 &(s->pressure),
-                 &(s->vertical_angle),
-                 &(s->horizontal_angle),
-                 &(s->jet_length), &(s->bed_level)) == 8;
-}
-
-/**
- * \fn void sprinkler_init(Sprinkler *s)
- * \brief function to input a sprinkler struct.
- * \param s
- * \brief sprinkler struct.
+ * \brief Sprinkler struct.
  */
 void
-sprinkler_init (Sprinkler * s)
+trajectory_init_sprinkler (Trajectory *t, Sprinkler *s)
 {
-  printf ("Sprinkler x: ");
-  scanf ("%le", &(s->x));
-  printf ("Sprinkler y: ");
-  scanf ("%le", &(s->y));
-  printf ("Sprinkler z: ");
-  scanf ("%le", &(s->z));
-  printf ("Sprinkler pressure: ");
-  scanf ("%le", &(s->pressure));
-  printf ("Jet vertical angle: ");
-  scanf ("%le", &(s->vertical_angle));
-  printf ("Jet horizontal angle: ");
-  scanf ("%le", &(s->horizontal_angle));
-  printf ("Jet length: ");
-  scanf ("%le", &(s->jet_length));
-  printf ("Bed level: ");
-  scanf ("%le", &(s->bed_level));
+  Drop *d;
+  double v, k2, k3;
+  d = t->drop;
+  t->t = 0.;
+  d->r[0] = s->x;
+  d->r[1] = s->y;
+  d->r[2] = s->z;
+  v = sqrt (2. * s->pressure / d->density);
+  k2 = s->horizontal_angle * M_PI / 180.;
+  k3 = s->vertical_angle * M_PI / 180.;
+  d->v[0] = v * cos (k3) * cos (k2);
+  d->v[1] = v * cos (k3) * sin (k2);
+  d->v[2] = v * sin (k3);
+  printf ("Time step size: %le\n", t->dt);
+  printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
+  printf ("Drop velocity: (%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
 }
 
 /**
- * \fn double drop_move (Drop * d, Air * a, Trajectory * t)
- * \brief function to calculate drag resistance and acceleration vector.
- * \param d
- * \brief drop struct.
- * \param a
- * \brief air struct.
- * \param t
- * \brief trajectory struct.
- * \return drag resistance parameter.
- */
-double
-drop_move (Drop * d, Air * a, Trajectory * t)
-{
-  double vrx, vry, v;
-  vrx = t->vx - a->vx;
-  vry = t->vy - a->vy;
-  v = vector_module (vrx, vry, t->vz);
-  t->drag =
-    -0.75 * v * drop_drag (a->density * v * d->diameter / a->viscosity) *
-    a->density / (d->density * d->diameter);
-  t->ax = t->drag * vrx;
-  t->ay = t->drag * vry;
-  t->az = -G + t->drag * t->vz;
-  return -t->drag;
-}
-
-/**
- * \fn int trajectory_open (Trajectory * t, Sprinkler * s, Drop * d, \
- *   FILE * file)
- * \brief function to open a trajectory struct in a file.
+ * \fn int trajectory_open_file (Trajectory * t, Sprinkler * s, FILE * file)
+ * \brief function to open a Trajectory struct in a file.
  * \param t
  * \brief trajectory struct.
  * \param s
  * \brief sprinkler struct.
- * \param d
- * \brief drop struct.
  * \param file
  * \brief file.
  * \return 1 on success, 0 on error.
  */
 int
-trajectory_open (Trajectory * t, Sprinkler * s, Drop * d, FILE * file)
+trajectory_open_file (Trajectory * t, FILE * file)
 {
-  double v, k2, k3;
   if (fscanf (file, "%le", &(t->dt)) != 1)
     return 0;
-  printf ("Time step size: %le\n", t->dt);
-  t->t = 0.;
-  t->x = s->x;
-  t->y = s->y;
-  t->z = s->z;
-  v = sqrt (2. * s->pressure / d->density);
-  printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
-  k2 = s->horizontal_angle * M_PI / 180.;
-  k3 = s->vertical_angle * M_PI / 180.;
-  t->vx = v * cos (k3) * cos (k2);
-  t->vy = v * cos (k3) * sin (k2);
-  t->vz = v * sin (k3);
-  printf ("Drop velocity: (%le,%le,%le)\n", t->vx, t->vy, t->vz);
   return 1;
 }
 
 /**
- * \fn void trajectory_init (Trajectory * t, Sprinkler * s, Drop * d)
+ * \fn void trajectory_open_console (Trajectory * t)
  * \brief function to input a trajectory struct.
  * \param t
  * \brief trajectory struct.
- * \param s
- * \brief sprinkler struct.
- * \param d
- * \brief drop struct.
  */
 void
-trajectory_init (Trajectory * t, Sprinkler * s, Drop * d)
+trajectory_open_console (Trajectory * t)
 {
-  double v, k2, k3;
   printf ("Time step size: ");
-  scanf ("%le", &(t->dt));
-  t->t = 0.;
-  t->x = s->x;
-  t->y = s->y;
-  t->z = s->z;
-  v = sqrt (2. * s->pressure / d->density);
-  printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
-  k2 = s->horizontal_angle * M_PI / 180.;
-  k3 = s->vertical_angle * M_PI / 180.;
-  t->vx = v * cos (k3) * cos (k2);
-  t->vy = v * cos (k3) * sin (k2);
-  t->vz = v * sin (k3);
-  printf ("Drop velocity: (%le,%le,%le)\n", t->vx, t->vy, t->vz);
-  t->drag = 0.;
+  scanf ("%lf", &(t->dt));
 }
 
 /**
@@ -262,89 +122,87 @@ trajectory_init (Trajectory * t, Sprinkler * s, Drop * d)
 void
 trajectory_jet (Trajectory * t, Sprinkler * s)
 {
+  Drop *d;
   if (s->jet_length == 0.)
     return;
-  t->t = s->jet_length / sqrt (t->vx * t->vx + t->vy * t->vy);
-  t->x += t->t * t->vx;
-  t->y += t->t * t->vy;
-  t->z += t->t * (t->vz - 0.5 * G * t->t);
-  t->vz -= G * t->t;
+  d = t->drop;
+  t->t = s->jet_length / sqrt (d->v[0] * d->v[0] + d->v[1] * d->v[1]);
+  d->r[0] += t->t * d->v[0];
+  d->r[1] += t->t * d->v[1];
+  d->r[2] += t->t * (d->v[2] - 0.5 * G * t->t);
+  d->v[2] -= G * t->t;
 }
 
 /**
- * \fn void trajectory_runge_kutta_4 (Trajectory * t, Drop * d, Air * a)
+ * \fn void trajectory_runge_kutta_4 (Trajectory * t, Air * a)
  * \brief function implementing a 4th order Runge-Kutta method to calculate a
  *   drop trajectory.
  * \param t
  * \brief trajectory struct.
- * \param d
- * \brief drop struct.
  * \param a
  * \brief air struct.
  */
 void
-trajectory_runge_kutta_4 (Trajectory * t, Drop * d, Air * a)
+trajectory_runge_kutta_4 (Trajectory * t, Air * a)
 {
+  Drop d2[1], d3[1], d4[1], *d;
   double dt2, dt6;
-  Trajectory t2[1], t3[1], t4[1];
+  d = t->drop;
   dt2 = 0.5 * t->dt;
-  t2->x = t->x + dt2 * t->vx;
-  t2->y = t->y + dt2 * t->vy;
-  t2->z = t->z + dt2 * t->vz;
-  t2->vx = t->vx + dt2 * t->ax;
-  t2->vy = t->vy + dt2 * t->ay;
-  t2->vz = t->vz + dt2 * t->az;
-  drop_move (d, a, t2);
-  t3->x = t->x + dt2 * t2->vx;
-  t3->y = t->y + dt2 * t2->vy;
-  t3->z = t->z + dt2 * t2->vz;
-  t3->vx = t->vx + dt2 * t2->ax;
-  t3->vy = t->vy + dt2 * t2->ay;
-  t3->vz = t->vz + dt2 * t2->az;
-  drop_move (d, a, t3);
-  t4->x = t->x + t->dt * t3->vx;
-  t4->y = t->y + t->dt * t3->vy;
-  t4->z = t->z + t->dt * t3->vz;
-  t4->vx = t->vx + t->dt * t3->ax;
-  t4->vy = t->vy + t->dt * t3->ay;
-  t4->vz = t->vz + t->dt * t3->az;
-  drop_move (d, a, t4);
+  d2->r[0] = d->r[0] + dt2 * d->v[0];
+  d2->r[1] = d->r[1] + dt2 * d->v[1];
+  d2->r[2] = d->r[2] + dt2 * d->v[2];
+  d2->v[0] = d->v[0] + dt2 * d->a[0];
+  d2->v[1] = d->v[1] + dt2 * d->a[1];
+  d2->v[2] = d->v[2] + dt2 * d->a[2];
+  drop_move (d2, a);
+  d3->r[0] = d->r[0] + dt2 * d2->v[0];
+  d3->r[1] = d->r[1] + dt2 * d2->v[1];
+  d3->r[2] = d->r[2] + dt2 * d2->v[2];
+  d3->v[0] = d->v[0] + dt2 * d2->a[0];
+  d3->v[1] = d->v[1] + dt2 * d2->a[1];
+  d3->v[2] = d->v[2] + dt2 * d2->a[2];
+  drop_move (d3, a);
+  d4->r[0] = d->r[0] + t->dt * d3->v[0];
+  d4->r[1] = d->r[1] + t->dt * d3->v[1];
+  d4->r[2] = d->r[2] + t->dt * d3->v[2];
+  d4->v[0] = d->v[0] + t->dt * d3->a[0];
+  d4->v[1] = d->v[1] + t->dt * d3->a[1];
+  d4->v[2] = d->v[2] + t->dt * d3->a[2];
+  drop_move (d4, a);
   dt6 = 1. / 6. * t->dt;
-  t->x += dt6 * (t->vx + t4->vx + 2.0 * (t2->vx + t3->vx));
-  t->y += dt6 * (t->vy + t4->vy + 2.0 * (t2->vy + t3->vy));
-  t->z += dt6 * (t->vz + t4->vz + 2.0 * (t2->vz + t3->vz));
-  t->vx += dt6 * (t->ax + t4->ax + 2.0 * (t2->ax + t3->ax));
-  t->vy += dt6 * (t->ay + t4->ay + 2.0 * (t2->ay + t3->ay));
-  t->vz += dt6 * (t->az + t4->az + 2.0 * (t2->az + t3->az));
+  d->r[0] += dt6 * (d->v[0] + d4->v[0] + 2.0 * (d2->v[0] + d3->v[0]));
+  d->r[1] += dt6 * (d->v[1] + d4->v[1] + 2.0 * (d2->v[1] + d3->v[1]));
+  d->r[2] += dt6 * (d->v[2] + d4->v[2] + 2.0 * (d2->v[2] + d3->v[2]));
+  d->v[0] += dt6 * (d->a[0] + d4->a[0] + 2.0 * (d2->a[0] + d3->a[0]));
+  d->v[1] += dt6 * (d->a[1] + d4->a[1] + 2.0 * (d2->a[1] + d3->a[1]));
+  d->v[2] += dt6 * (d->a[2] + d4->a[2] + 2.0 * (d2->a[2] + d3->a[2]));
   t->t += t->dt;
 }
 
 /**
- * \fn void trajectory_impact_correction (Trajectory * t, Drop * d, Air * a, \
- *   Sprinkler * s)
+ * \fn void trajectory_impact_correction (Trajectory * t, Air * a)
  * \brief function to correct the trajectory at the soil impact.
  * \param t
  * \brief trajectory struct.
- * \param d
- * \brief drop struct.
  * \param a
  * \brief air struct.
- * \param s
- * \brief sprinkler struct.
  */
 void
-trajectory_impact_correction (Trajectory * t, Drop * d, Air * a, Sprinkler * s)
+trajectory_impact_correction (Trajectory * t, Air * a)
 {
+  Drop *d;
   double dt, h;
-  drop_move (d, a, t);
-  h = s->bed_level - t->z;
-  dt = (-sqrt (t->vz * t->vz - 2. * h * t->az) - t->vz) / t->az;
-  t->x -= dt * (t->vx - 0.5 * dt * t->ax);
-  t->y -= dt * (t->vy - 0.5 * dt * t->ay);
-  t->z -= dt * (t->vz - 0.5 * dt * t->az);
-  t->vx -= dt * t->ax;
-  t->vy -= dt * t->ay;
-  t->vz -= dt * t->az;
+  d = t->drop;
+  drop_move (d, a);
+  h = bed_level - d->r[2];
+  dt = (-sqrt (d->v[2] * d->v[2] - 2. * h * d->a[2]) - d->v[2]) / d->a[2];
+  d->r[0] -= dt * (d->v[0] - 0.5 * dt * d->a[0]);
+  d->r[1] -= dt * (d->v[1] - 0.5 * dt * d->a[1]);
+  d->r[2] -= dt * (d->v[2] - 0.5 * dt * d->a[2]);
+  d->v[0] -= dt * d->a[0];
+  d->v[1] -= dt * d->a[1];
+  d->v[2] -= dt * d->a[2];
   t->t -= dt;
 }
 
@@ -359,8 +217,11 @@ trajectory_impact_correction (Trajectory * t, Drop * d, Air * a, Sprinkler * s)
 void
 trajectory_write (Trajectory * t, FILE * file)
 {
+  Drop *d;
+  d = t->drop;
   fprintf (file, "%lg %lg %lg %lg %lg %lg %lg %lg\n",
-           t->t, t->x, t->y, t->z, t->vx, t->vy, t->vz, -t->drag);
+           t->t, d->r[0], d->r[1], d->r[2], d->v[0], d->v[1], d->v[2],
+		   -d->drag);
 }
 
 /**
@@ -373,51 +234,48 @@ trajectory_write (Trajectory * t, FILE * file)
  * \brief sprinkler struct.
  * \param air
  * \brief air struct.
- * \param drop
- * \brief drop struct.
  * \param trajectory.
  * \brief trajectory struct.
  * \return 1 on success, 0 on error.
  */
 int
-open (char *name, Sprinkler * sprinkler, Air * air, Drop * drop,
-      Trajectory * trajectory)
+open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
 {
   FILE *file;
   file = fopen (name, "r");
   if (!file)
     return 0;
-  if (!sprinkler_open (sprinkler, file)
-      || !air_open_file (air, file) || !drop_open (drop, air, file))
+  if (!sprinkler_open_file (sprinkler, file)
+      || !air_open_file (air, file)
+	  || !drop_open_file (trajectory->drop, air, file))
     {
       fclose (file);
       return 0;
     }
-  trajectory_open (trajectory, sprinkler, drop, file);
+  trajectory_open_file (trajectory, file);
+  trajectory_init_sprinkler (trajectory, sprinkler);
   fclose (file);
   return 1;
 }
 
 /**
- * \fn void init (Sprinkler * sprinkler, Air * air, Drop * drop, \
- *   Trajectory * trajectory)
+ * \fn void init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
  * \brief function to input all data.
  * \param sprinkler
  * \brief sprinkler struct.
  * \param air
  * \brief air struct.
- * \param drop
- * \brief drop struct.
  * \param trajectory.
  * \brief trajectory struct.
  */
 void
-init (Sprinkler * sprinkler, Air * air, Drop * drop, Trajectory * trajectory)
+init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
 {
-  sprinkler_init (sprinkler);
-  air_init (air);
-  drop_init (drop, air);
-  trajectory_init (trajectory, sprinkler, drop);
+  sprinkler_open_console (sprinkler);
+  air_open_console (air);
+  drop_open_console (trajectory->drop, air);
+  trajectory_open_console (trajectory);
+  trajectory_init_sprinkler (trajectory, sprinkler);
 }
 
 /**
@@ -432,20 +290,20 @@ init (Sprinkler * sprinkler, Air * air, Drop * drop, Trajectory * trajectory)
 int
 main (int argn, char **argc)
 {
-  double dt, dtmax;
-  FILE *file;
   Sprinkler sprinkler[1];
   Air air[1];
-  Drop drop[1];
   Trajectory trajectory[1];
+  Drop *drop;
+  FILE *file;
+  double dt, dtmax;
   if (argn == 2)
     {
-      init (sprinkler, air, drop, trajectory);
+      init (sprinkler, air, trajectory);
       file = fopen (argc[1], "w");
     }
   else if (argn == 3)
     {
-      if (!open (argc[1], sprinkler, air, drop, trajectory))
+      if (!open (argc[1], sprinkler, air, trajectory))
         {
           printf ("Unable to open the data file\n");
           return 2;
@@ -465,17 +323,18 @@ main (int argn, char **argc)
     }
   trajectory_write (trajectory, file);
   trajectory_jet (trajectory, sprinkler);
-  for (dt = trajectory->dt; trajectory->z > sprinkler->bed_level;)
+  drop = trajectory->drop;
+  for (dt = trajectory->dt; drop->r[2] > bed_level;)
     {
       trajectory_write (trajectory, file);
-      dtmax = 1. / drop_move (drop, air, trajectory);
+      dtmax = 1. / drop_move (drop, air);
       if (dt > dtmax)
         trajectory->dt = dtmax;
       else
         trajectory->dt = dt;
-      trajectory_runge_kutta_4 (trajectory, drop, air);
+      trajectory_runge_kutta_4 (trajectory, air);
     }
-  trajectory_impact_correction (trajectory, drop, air, sprinkler);
+  trajectory_impact_correction (trajectory, air);
   trajectory_write (trajectory, file);
   return 0;
 }
