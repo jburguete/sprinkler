@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -37,13 +37,18 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
+#include <gsl/gsl_randist.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
 #endif
 #include "config.h"
 #include "utils.h"
 #include "air.h"
+
+#define DEBUG_AIR 1             ///< macro to debug air functions.
 
 double air_temperature = AIR_TEMPERATURE;       ///< air temperature in Celsius.
 double air_pressure = AIR_PRESSURE;     ///< air pressure.
@@ -106,6 +111,9 @@ air_print (Air * a)
 void
 air_init (Air * a)
 {
+#if DEBUG_AIR
+  fprintf (stderr, "air_init: start\n");
+#endif
   a->temperature = air_temperature;
   a->pressure = air_pressure;
   a->velocity = air_velocity;
@@ -123,6 +131,9 @@ air_init (Air * a)
                    AIR_MOLECULAR_MASS) * a->vapour_pressure) / (R * a->kelvin);
   a->kinematic_viscosity = a->dynamic_viscosity / a->density;
   air_print (a);
+#if DEBUG_AIR
+  fprintf (stderr, "air_init: end\n");
+#endif
 }
 
 /**
@@ -137,10 +148,23 @@ air_init (Air * a)
 int
 air_open_file (Air * a, FILE * file)
 {
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_file: start\n");
+#endif
   if (fscanf (file, "%lf%lf%lf%lf%lf", &air_velocity, &air_angle,
               &air_temperature, &air_humidity, &air_pressure) != 5)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air file"), ": ",
+                                   gettext ("unable to open the data"), NULL);
+#if DEBUG_AIR
+      fprintf (stderr, "air_open_file: end\n");
+#endif
+      return 0;
+    }
   air_init (a);
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_file: end\n");
+#endif
   return 1;
 }
 
@@ -153,6 +177,9 @@ air_open_file (Air * a, FILE * file)
 void
 air_open_console (Air * a)
 {
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_console: start\n");
+#endif
   printf ("Wind velocity (m/s): ");
   scanf ("%lf", &air_velocity);
   printf ("Wind angle (m/s): ");
@@ -164,6 +191,9 @@ air_open_console (Air * a)
   printf ("Air pressure (Pa): ");
   scanf ("%lf", &air_pressure);
   air_init (a);
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_console: end\n");
+#endif
 }
 
 /**
@@ -179,39 +209,82 @@ int
 air_open_xml (Air * a, xmlNode * node)
 {
   int k;
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_xml: start\n");
+#endif
   if (xmlStrcmp (node->name, XML_AIR))
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad label"), NULL);
+      goto exit_on_error;
+    };
   air_pressure
     = xml_node_get_float_with_default (node, XML_PRESSURE, AIR_PRESSURE, &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad pressure"), NULL);
+      goto exit_on_error;
+    };
   air_temperature
     = xml_node_get_float_with_default (node, XML_TEMPERATURE, AIR_TEMPERATURE,
                                        &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad temperature"), NULL);
+      goto exit_on_error;
+    };
   air_humidity
     = xml_node_get_float_with_default (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad humidity"), NULL);
+      goto exit_on_error;
+    };
   air_velocity
     = xml_node_get_float_with_default (node, XML_VELOCITY, WIND_VELOCITY, &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad wind velocity"), NULL);
+      goto exit_on_error;
+    };
   air_angle = xml_node_get_float_with_default (node, XML_ANGLE, WIND_ANGLE, &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad wind velocity"), NULL);
+      goto exit_on_error;
+    };
   air_height
     = xml_node_get_float_with_default (node, XML_HEIGHT, WIND_HEIGHT, &k);
   if (!k)
-    return 0;
+    {
+      error_message
+        = g_strconcat (gettext ("Air XML node"), ": ",
+                       gettext ("bad reference height to measure the wind"),
+                       NULL);
+      goto exit_on_error;
+    };
   air_uncertainty
     = xml_node_get_float_with_default (node, XML_UNCERTAINTY, WIND_UNCERTAINTY,
                                        &k);
   if (!k)
-    return 0;
+    {
+      error_message = g_strconcat (gettext ("Air XML node"), ": ",
+                                   gettext ("bad wind uncertainty"), NULL);
+      goto exit_on_error;
+    };
   air_init (a);
   return 1;
+
+exit_on_error:
+#if DEBUG_AIR
+  fprintf (stderr, "air_open_xml: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -226,10 +299,16 @@ void
 air_wind_uncertainty (Air * a, gsl_rng * rng)
 {
   float uncertainty, angle;
+#if DEBUG_AIR
+  fprintf (stderr, "air_wind_uncertainty: start\n");
+#endif
   angle = 2 * M_PI * gsl_rng_uniform (rng);
-  uncertainty = a->uncertainty * gsl_rng_uniform (rng);
+  uncertainty = a->uncertainty * fmin (5., fabs (gsl_ran_ugaussian (rng)));
   a->u = a->vx + uncertainty * cos (angle);
   a->v = a->vy + uncertainty * sin (angle);
+#if DEBUG_AIR
+  fprintf (stderr, "air_wind_uncertainty: end\n");
+#endif
 }
 
 #if HAVE_GTK
@@ -245,14 +324,19 @@ dialog_air_new (Air * a)
 {
   DialogAir dlg[1];
 
-  dlg->label_temperature = (GtkLabel *) gtk_label_new ("Temperatura del aire");
-  dlg->label_pressure = (GtkLabel *) gtk_label_new ("Presión atmosférica");
-  dlg->label_velocity = (GtkLabel *) gtk_label_new ("Velocidad del viento");
-  dlg->label_angle = (GtkLabel *) gtk_label_new ("Ángulo del viento");
-  dlg->label_height = (GtkLabel *) gtk_label_new
-    ("Altura de referencia del viento");
-  dlg->label_uncertainty =
-    (GtkLabel *) gtk_label_new ("Incertidumbre del viento");
+#if DEBUG_AIR
+  fprintf (stderr, "dialog_air_new: start\n");
+#endif
+
+  dlg->label_temperature
+    = (GtkLabel *) gtk_label_new (gettext ("Air temperature"));
+  dlg->label_pressure = (GtkLabel *) gtk_label_new (gettext ("Air pressure"));
+  dlg->label_velocity = (GtkLabel *) gtk_label_new (gettext ("Wind velocity"));
+  dlg->label_angle = (GtkLabel *) gtk_label_new (gettext ("Wind angle"));
+  dlg->label_height
+    = (GtkLabel *) gtk_label_new (gettext ("Wind reference height"));
+  dlg->label_uncertainty
+    = (GtkLabel *) gtk_label_new (gettext ("Wind uncertainty"));
 
   dlg->spin_temperature = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 100., 0.1);
@@ -288,12 +372,11 @@ dialog_air_new (Air * a)
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->label_uncertainty, 0, 5, 1, 1);
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_uncertainty, 1, 5, 1, 1);
 
-  dlg->window =
-    (GtkDialog *) gtk_dialog_new_with_buttons ("Condiciones atmosféricas",
-                                               window_parent, GTK_DIALOG_MODAL,
-                                               GTK_STOCK_OK, GTK_RESPONSE_OK,
-                                               GTK_STOCK_CANCEL,
-                                               GTK_RESPONSE_CANCEL, NULL);
+  dlg->window = (GtkDialog *)
+    gtk_dialog_new_with_buttons (gettext ("Atmospheric conditions"),
+                                 window_parent, GTK_DIALOG_MODAL,
+                                 GTK_STOCK_OK, GTK_RESPONSE_OK,
+                                 GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL, NULL);
   gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (dlg->window)),
                      GTK_WIDGET (dlg->grid));
   gtk_widget_show_all (GTK_WIDGET (dlg->window));
@@ -309,6 +392,11 @@ dialog_air_new (Air * a)
       air_init (a);
     }
   gtk_widget_destroy ((GtkWidget *) dlg->window);
+
+#if DEBUG_AIR
+  fprintf (stderr, "dialog_air_new: end\n");
+#endif
+
 }
 
 #endif

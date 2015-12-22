@@ -106,7 +106,7 @@ void air_print(Air *a)
 	function to print the atmospheric variables
 
 inputs:
-	a: air struct
+	a: Air struct
 
 *******************************************************************************/
 
@@ -122,10 +122,10 @@ air_print (Air * a)
 
 void air_open_xml(Air *a, xmlNode *node)
 
-	function to open an air struct in a XML node
+	function to open an Air struct in a XML node
 
 inputs:
-	a: air struct
+	a: Air struct
 	node: XML node
 	
 *******************************************************************************/

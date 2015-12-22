@@ -56,7 +56,7 @@ OF SUCH DAMAGE.
  * \param sprinkler
  * \brief sprinkler struct.
  * \param air
- * \brief air struct.
+ * \brief Air struct.
  * \param trajectory.
  * \brief Trajectory struct.
  * \return 1 on success, 0 on error.
@@ -86,7 +86,7 @@ open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
  * \param sprinkler
  * \brief sprinkler struct.
  * \param air
- * \brief air struct.
+ * \brief Air struct.
  * \param trajectory.
  * \brief Trajectory struct.
  */
@@ -115,6 +115,7 @@ main (int argn, char **argc)
   Sprinkler sprinkler[1];
   Air air[1];
   Trajectory trajectory[1];
+  gsl_rng *rng;
   FILE *file;
   if (argn == 2)
     {
@@ -141,7 +142,11 @@ main (int argn, char **argc)
       printf ("Unable to open the output file\n");
       return 3;
     }
-  trajectory_calculate (trajectory, air, file);
+  rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set (rng, RANDOM_SEED);
+  air_wind_uncertainty (air, rng);
+  trajectory_calculate (trajectory, air);
+  gsl_rng_free (rng);
   fclose (file);
   return 0;
 }

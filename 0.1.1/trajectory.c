@@ -37,6 +37,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
@@ -46,6 +48,8 @@ OF SUCH DAMAGE.
 #include "air.h"
 #include "drop.h"
 #include "trajectory.h"
+
+#define DEBUG_TRAJECTORY 1      ///< macro to debug trajectory functions.
 
 /**
  * \fn int trajectory_open_file (Trajectory * t, Air *a, FILE * file)
@@ -61,11 +65,37 @@ OF SUCH DAMAGE.
 int
 trajectory_open_file (Trajectory * t, Air * a, FILE * file)
 {
+  char buffer[512];
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_file: start\n");
+#endif
   if (!drop_open_file (t->drop, a, file))
-    return 0;
-  if (fscanf (file, "%lf%lf%lf", &(t->bed_level), &(t->dt), &(t->cfl)) != 3)
-    return 0;
+    goto exit_on_error;
+  if (fscanf (file, "%lf%lf%lf%s", &(t->bed_level), &(t->dt), &(t->cfl), buffer)
+	  != 4)
+    {
+	  error_message = g_strconcat (gettext ("Trajectory file"), ": ",
+			                       gettext ("unable to open the data"), NULL);
+      goto exit_on_error;
+    }
+  t->file = fopen (buffer, "w");
+  if (!t->file)
+    {
+	  error_message = g_strconcat (gettext ("Trajectory file"), ": ",
+			                       gettext ("unable to open the results file"),
+								   NULL);
+      goto exit_on_error;
+    }
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_file: end\n");
+#endif
   return 1;
+
+exit_on_error:
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_file: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -79,6 +109,10 @@ trajectory_open_file (Trajectory * t, Air * a, FILE * file)
 void
 trajectory_open_console (Trajectory * t, Air * a)
 {
+  char buffer[512];
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_console: start\n");
+#endif
   drop_open_console (t->drop, a);
   printf ("Bed level: ");
   scanf ("%lf", &(t->bed_level));
@@ -86,6 +120,12 @@ trajectory_open_console (Trajectory * t, Air * a)
   scanf ("%lf", &(t->dt));
   printf ("CFL number: ");
   scanf ("%lf", &(t->cfl));
+  printf ("Results file name: ");
+  scanf ("%512s", buffer);
+  t->file = fopen (buffer, "w");
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_console: end\n");
+#endif
 }
 
 /**
@@ -103,24 +143,60 @@ int
 trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
 {
   int k;
+  xmlChar *buffer;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_xml: start\n");
+#endif
   if (xmlStrcmp (node->name, XML_TRAJECTORY))
-    return 0;
+    {
+      goto exit_on_error;
+    }
   if (!drop_open_xml (t->drop, a, node->children))
-    return 0;
+    {
+      goto exit_on_error;
+    }
   t->bed_level = xml_node_get_float_with_default (node, XML_BED_LEVEL, 0., &k);
   if (!k)
-    return 0;
+    {
+      goto exit_on_error;
+    }
   t->dt = xml_node_get_float (node, XML_DT, &k);
   if (!k)
-    return 0;
+    {
+      goto exit_on_error;
+    }
   t->cfl = xml_node_get_float (node, XML_CFL, &k);
   if (!k)
-    return 0;
+    {
+      goto exit_on_error;
+    }
   t->jet_length
     = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
   if (!k)
-    return 0;
+    {
+      goto exit_on_error;
+    }
+  buffer = xmlGetProp (node, XML_FILE);
+  if (!buffer)
+    {
+      goto exit_on_error;
+    }
+  t->file = fopen ((char *)buffer, "w");
+  xmlFree (buffer);
+  if (!t->file)
+    {
+      goto exit_on_error;
+    }
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_xml: end\n");
+#endif
   return 1;
+
+exit_on_error:
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_xml: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -151,7 +227,7 @@ trajectory_jet (Trajectory * t)
  * \param t
  * \brief Trajectory struct.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  */
 void
 trajectory_runge_kutta_4 (Trajectory * t, Air * a)
@@ -197,7 +273,7 @@ trajectory_runge_kutta_4 (Trajectory * t, Air * a)
  * \param t
  * \brief Trajectory struct.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  */
 void
 trajectory_impact_correction (Trajectory * t, Air * a)
@@ -223,7 +299,7 @@ trajectory_impact_correction (Trajectory * t, Air * a)
  * \param t
  * \brief Trajectory struct.
  * \param a
- * \brief air struct.
+ * \brief Air struct.
  */
 void
 trajectory_initial_correction (Trajectory * t, Air * a)
@@ -243,70 +319,64 @@ trajectory_initial_correction (Trajectory * t, Air * a)
 }
 
 /**
- * \fn void trajectory_write (Trajectory * t, FILE * file)
+ * \fn void trajectory_write (Trajectory * t)
  * \brief function to write a trajectory in a file.
  * \param t
  * \brief Trajectory struct.
- * \param file
- * \brief file.
  */
 void
-trajectory_write (Trajectory * t, FILE * file)
+trajectory_write (Trajectory * t)
 {
   Drop *d;
   d = t->drop;
-  fprintf (file, "%lg %lg %lg %lg %lg %lg %lg %lg\n",
+  fprintf (t->file, "%lg %lg %lg %lg %lg %lg %lg %lg\n",
            t->t, d->r[0], d->r[1], d->r[2], d->v[0], d->v[1], d->v[2],
            -d->drag);
 }
 
 /**
- * \fn void trajectory_calculate (Trajectory *t, Air *a, FILE *file)
+ * \fn void trajectory_calculate (Trajectory *t, Air *a)
  * \brief function to calculate the drop trajectory.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
- * \param file
- * \brief results file.
  */
 void
-trajectory_calculate (Trajectory * t, Air * a, FILE * file)
+trajectory_calculate (Trajectory * t, Air * a)
 {
   Drop *drop;
   double dt;
-  trajectory_write (t, file);
+  trajectory_write (t);
   trajectory_jet (t);
   drop = t->drop;
   for (dt = t->dt; drop->r[2] > t->bed_level;)
     {
-      trajectory_write (t, file);
+      trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (drop, a));
       trajectory_runge_kutta_4 (t, a);
     }
   trajectory_impact_correction (t, a);
-  trajectory_write (t, file);
+  trajectory_write (t);
 }
 
 /**
- * \fn void trajectory_invert (Trajectory *t, Air *a, FILE *file)
+ * \fn void trajectory_invert (Trajectory *t, Air *a)
  * \brief function to calculate the inverse drop trajectory.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
- * \param file
- * \brief results file.
  */
 void
-trajectory_invert (Trajectory * t, Air * a, FILE * file)
+trajectory_invert (Trajectory * t, Air * a)
 {
   Drop *drop;
   double dt;
   drop = t->drop;
   for (dt = t->dt; drop->r[2] > t->bed_level && drop->r[0] > 0.;)
     {
-      trajectory_write (t, file);
+      trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (drop, a));
       trajectory_runge_kutta_4 (t, a);
     }
@@ -314,5 +384,5 @@ trajectory_invert (Trajectory * t, Air * a, FILE * file)
     trajectory_impact_correction (t, a);
   if (drop->r[0] < 0.)
     trajectory_impact_correction (t, a);
-  trajectory_write (t, file);
+  trajectory_write (t);
 }

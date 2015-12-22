@@ -49,7 +49,7 @@ double jet_height (Jet * j, double x);
 int jet_open_file (Jet * j, FILE * file);
 void jet_open_console (Jet * j);
 int jet_open_xml (Jet * j, xmlNode * node);
-void trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j, FILE * file);
+void trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j);
 
 #if HAVE_GTK
 

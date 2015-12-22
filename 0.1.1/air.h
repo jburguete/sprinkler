@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:

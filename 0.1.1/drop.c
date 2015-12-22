@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -38,6 +38,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
@@ -46,6 +48,8 @@ OF SUCH DAMAGE.
 #include "utils.h"
 #include "air.h"
 #include "drop.h"
+
+#define DEBUG_DROP 1            ///< macro to debug drop functions.
 
 double drop_diameter;           ///< drop diameter.
 double drop_velocity;           ///< drop initial velocity.
@@ -122,7 +126,7 @@ water_surface_tension (double kelvin)
 }
 
 /**
- * \fn void drop_init (Drop * d, Air * a)
+ * \fn void drop_init (Drop * d, Air * a, gsl_rng *rng)
  * \brief function to init the drop variables.
  * \param d
  * \brief Drop struct.
@@ -132,11 +136,17 @@ water_surface_tension (double kelvin)
 void
 drop_init (Drop * d, Air * a)
 {
+#if DEBUG_DROP
+  fprintf (stderr, "drop_init: start\n");
+#endif
   d->diameter = drop_diameter;
   d->density = water_density (a);
   d->surface_tension = water_surface_tension (a->kelvin);
   printf ("Drop density = %le\n", d->density);
   printf ("Drop surface tension = %le\n", d->surface_tension);
+#if DEBUG_DROP
+  fprintf (stderr, "drop_init: end\n");
+#endif
 }
 
 /**
@@ -153,9 +163,22 @@ drop_init (Drop * d, Air * a)
 int
 drop_open_file (Drop * d, Air * a, FILE * file)
 {
+#if DEBUG_DROP
+  fprintf (stderr, "drop_open_file: start\n");
+#endif
   if (fscanf (file, "%lf", &drop_diameter) != 1)
-    return 0;
+	{
+	  error_message = g_strconcat (gettext ("Drop file"), ": ",
+			                       gettext ("unable to open the data"), NULL);
+#if DEBUG_DROP
+      fprintf (stderr, "drop_open_file: end\n");
+#endif
+      return 0;
+	}
   drop_init (d, a);
+#if DEBUG_DROP
+  fprintf (stderr, "drop_open_file: end\n");
+#endif
   return 1;
 }
 
@@ -166,13 +189,21 @@ drop_open_file (Drop * d, Air * a, FILE * file)
  * \brief Drop struct.
  * \param a
  * \brief air struct.
+ * \param rng
+ * \brief GSL pseudo-random numbers generator struct.
  */
 void
 drop_open_console (Drop * d, Air * a)
 {
+#if DEBUG_DROP
+  fprintf (stderr, "drop_open_console: start\n");
+#endif
   printf ("Drop diameter: ");
   scanf ("%lf", &drop_diameter);
   drop_init (d, a);
+#if DEBUG_DROP
+  fprintf (stderr, "drop_open_console: end\n");
+#endif
 }
 
 /**
@@ -190,36 +221,74 @@ drop_open_xml (Drop * d, Air * a, xmlNode * node)
   int k;
   double sh, ch, sv, cv;
   if (xmlStrcmp (node->name, XML_DROP))
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad label"), NULL);
+      goto exit_on_error;
+    }
   drop_diameter = xml_node_get_float (node, XML_DIAMETER, &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad diameter"), NULL);
+      goto exit_on_error;
+    }
   d->r[0] = xml_node_get_float_with_default (node, XML_X, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad x"), NULL);
+      goto exit_on_error;
+    }
   d->r[1] = xml_node_get_float_with_default (node, XML_Y, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad y"), NULL);
+      goto exit_on_error;
+    }
   d->r[2] = xml_node_get_float_with_default (node, XML_Z, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad z"), NULL);
+      goto exit_on_error;
+    }
   drop_velocity = xml_node_get_float_with_default (node, XML_VELOCITY, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad velocity"), NULL);
+      goto exit_on_error;
+    }
   drop_horizontal_angle
     = xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad horizontal angle"), NULL);
+      goto exit_on_error;
+    }
   drop_vertical_angle
     = xml_node_get_float_with_default (node, XML_VERTICAL_ANGLE, 0., &k);
   if (!k)
-    return 0;
+    {
+	  error_message = g_strconcat (gettext ("Drop XML node"), ": ",
+			                       gettext ("bad vertical angle"), NULL);
+      goto exit_on_error;
+    }
   sincos (M_PI / 180. * drop_horizontal_angle, &sh, &ch);
   sincos (M_PI / 180. * drop_vertical_angle, &sv, &cv);
   d->v[0] = drop_velocity * cv * ch;
   d->v[1] = drop_velocity * cv * sh;
   d->v[2] = drop_velocity * sv;
   return 1;
+
+exit_on_error:
+#if DEBUG_DROP
+  fprintf (stderr, "drop_open_console: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -301,10 +370,8 @@ double
 drop_drag_ovoid (Drop * d, Air * a, double v)
 {
   drop_axis_ratio (d, a, v);
-  return drop_drag_sphere (d, a, v) * (3.709 + d->axis_ratio * (-5.519
-                                                                +
-                                                                2.731 *
-                                                                d->axis_ratio));
+  return drop_drag_sphere (d, a, v)
+    * (3.709 + d->axis_ratio * (-5.519 + 2.731 * d->axis_ratio));
 }
 
 /**
@@ -321,14 +388,25 @@ double
 drop_move (Drop * d, Air * a)
 {
   double vrx, vry, v;
+#if DEBUG_DROP
+  fprintf (stderr, "drop_move: start\n");
+#endif
   vrx = d->v[0] - a->u;
   vry = d->v[1] - a->v;
   v = vector_module (vrx, vry, d->v[2]);
+#if DEBUG_DROP
+  fprintf (stderr, "drop_move: vr=(%lg,%lg,%lg)\n", vrx, vry, d->v[2]);
+#endif
   d->drag =
     -0.75 * v * drop_drag (d, a, v) * a->density / (d->density * d->diameter);
   d->a[0] = d->drag * vrx;
   d->a[1] = d->drag * vry;
   d->a[2] = -(1. - a->density / d->density) * G + d->drag * d->v[2];
+#if DEBUG_DROP
+  fprintf (stderr, "drop_move: a=(%lg,%lg,%lg)\n", d->a[0], d->a[1], d->a[2]);
+  fprintf (stderr, "drop_move: drag=%lg\n", -d->drag);
+  fprintf (stderr, "drop_move: end\n");
+#endif
   return -d->drag;
 }
 

@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -47,6 +47,7 @@ OF SUCH DAMAGE.
 #define AIR_HUMIDITY 100.       ///< saturated relative humidity.
 #define AIR_PRESSURE 101325.    ///< atmospheric pressure.
 #define AIR_TEMPERATURE 20.     ///< normal atmospheric temperature in Celsius.
+#define RANDOM_SEED 7007        ///< pseudo-random numbers generator seed.
 #define WIND_ANGLE 0.           ///< wind azimuth angle.
 #define WIND_HEIGHT 2.          ///< reference height to measure the wind.
 #define WIND_UNCERTAINTY 0.     ///< wind uncertainty.
@@ -79,6 +80,8 @@ OF SUCH DAMAGE.
   ///< drop XML label.
 #define XML_DT               (const xmlChar*)"dt"
   ///< dt XML label.
+#define XML_FILE             (const xmlChar*)"file"
+  ///< file XML label.
 #define XML_HEIGHT           (const xmlChar*)"height"
   ///< height XML label.
 #define XML_HORIZONTAL_ANGLE (const xmlChar*)"horizontal_angle"

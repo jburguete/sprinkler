@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -36,6 +36,13 @@ OF SUCH DAMAGE.
 #ifndef UTILS__H
 #define UTILS__H 1
 
+extern char *error_message;
+
+#if HAVE_GTK
+extern GtkWindow *window_parent;
+#endif
+
+void show_error();
 double vector_module (double x, double y, double z);
 double xml_node_get_float (xmlNode * node, const xmlChar * prop,
                            int *error_code);

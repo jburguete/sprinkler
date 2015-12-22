@@ -140,19 +140,16 @@ jet_open_xml (Jet * j, xmlNode * node)
 }
 
 /**
- * \fn void trajectory_invert_with_jet (Trajectory *t, Air *a, Jet *j, \
- *   FILE *file)
+ * \fn void trajectory_invert_with_jet (Trajectory *t, Air *a, Jet *j)
  * \brief function to calculate the inverse drop trajectory to the sprinkler
  *   main jet.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
- * \param file
- * \brief results file.
  */
 void
-trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j, FILE * file)
+trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j)
 {
   Drop *drop;
   double dt, h1, h2;
@@ -161,7 +158,7 @@ trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j, FILE * file)
   for (dt = t->dt; drop->r[2] > t->bed_level && drop->r[0] > 0. && h1 > 0.;
        h1 = h2)
     {
-      trajectory_write (t, file);
+      trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (drop, a));
       trajectory_runge_kutta_4 (t, a);
       h2 = jet_height (j, drop->r[0]) - drop->r[2];
@@ -172,7 +169,7 @@ trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j, FILE * file)
     trajectory_impact_correction (t, a);
   if (drop->r[0] < 0.)
     trajectory_impact_correction (t, a);
-  trajectory_write (t, file);
+  trajectory_write (t);
 }
 
 #if HAVE_GTK

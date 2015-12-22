@@ -39,12 +39,14 @@ drop_print_parabolic (Drop * d)
 }
 
 int
-open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet,
-          FILE * file)
+open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
 {
   Drop *drop;
   xmlDoc *doc;
   xmlNode *node;
+  gsl_rng *rng;
+  rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set (rng, RANDOM_SEED);
   doc = xmlParseFile (name);
   if (!doc)
     return 0;
@@ -61,10 +63,12 @@ open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet,
     {
       if (!trajectory_open_xml (trajectory, air, node))
         return 0;
+	  air_wind_uncertainty (air, rng);
       drop_print_parabolic (drop);
-      trajectory_invert_with_jet (trajectory, air, jet, file);
+      trajectory_invert_with_jet (trajectory, air, jet);
       drop_print_ballistic (drop);
     }
+  gsl_rng_free (rng);
   return 1;
 }
 
@@ -90,7 +94,7 @@ main (int argn, char **argc)
           return 3;
         }
     }
-  if (!open_xml (argc[1], air, trajectory, jet, file))
+  if (!open_xml (argc[1], air, trajectory, jet))
     {
       printf ("Unable to open the data file\n");
       return 3;

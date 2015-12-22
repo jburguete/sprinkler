@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -33,10 +33,41 @@ OF SUCH DAMAGE.
  * \author Javier Burguete Tolosa.
  * \copyright Copyright 2012-2015 Javier Burguete Tolosa, all rights reserved.
  */
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#if HAVE_GTK
+#include <gtk/gtk.h>
+#endif
 #include "utils.h"
+
+char *error_message = NULL; ///< error message.
+
+#if HAVE_GTK
+
+GtkWindow *window_parent; ///< parent window.
+
+void show_error ()
+{
+  GtkMessageDialog *dlg;
+  dlg = (GtkMessageDialog *)
+	gtk_message_dialog_new (window_parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+			                GTK_BUTTONS_CLOSE, error_message);
+  gtk_dialog_run (GTK_DIALOG (dlg));
+  gtk_widget_destory (GTK_WIDGET (dlg));
+  g_free (error_message);
+  error_message = NULL;
+}
+
+#else
+
+void show_error ()
+{
+  puts (error_message);
+}
+
+#endif
 
 /**
  * \fn double vector_module(double x, double y, double z)

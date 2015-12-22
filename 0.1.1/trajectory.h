@@ -3,7 +3,7 @@ Sprinkler: a software to calculate drop trajectories in sprinkler irrigation.
 
 AUTHORS: Javier Burguete.
 
-Copyright 2012-2014, AUTHORS.
+Copyright 2012-2015, AUTHORS.
 
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
@@ -48,6 +48,7 @@ typedef struct
   double cfl;                   ///< stability number.
   double bed_level;             ///< bed level.
   double jet_length;            ///< length of the exiting jet.
+  FILE *file;                   ///< results file.
 } Trajectory;
 
 int trajectory_open_file (Trajectory * t, Air * a, FILE * file);
@@ -57,8 +58,8 @@ void trajectory_jet (Trajectory * t);
 void trajectory_runge_kutta_4 (Trajectory * t, Air * a);
 void trajectory_impact_correction (Trajectory * t, Air * a);
 void trajectory_initial_correction (Trajectory * t, Air * a);
-void trajectory_write (Trajectory * t, FILE * file);
-void trajectory_calculate (Trajectory * t, Air * a, FILE * file);
-void trajectory_invert (Trajectory * t, Air * a, FILE * file);
+void trajectory_write (Trajectory * t);
+void trajectory_calculate (Trajectory * t, Air * a);
+void trajectory_invert (Trajectory * t, Air * a);
 
 #endif
