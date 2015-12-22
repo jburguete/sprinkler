@@ -48,7 +48,7 @@ OF SUCH DAMAGE.
 #include "utils.h"
 #include "air.h"
 
-#define DEBUG_AIR 1             ///< macro to debug air functions.
+#define DEBUG_AIR 0             ///< macro to debug air functions.
 
 double air_temperature = AIR_TEMPERATURE;       ///< air temperature in Celsius.
 double air_pressure = AIR_PRESSURE;     ///< air pressure.
@@ -84,7 +84,7 @@ air_viscosity (Air * a)
 double
 air_saturation_pressure (Air * a)
 {
-  return exp (23.7836 - 37.8289 / (a->kelvin - 42.850));
+  return exp (23.7836 - 3782.89 / (a->kelvin - 42.850));
 }
 
 /**
@@ -116,6 +116,7 @@ air_init (Air * a)
 #endif
   a->temperature = air_temperature;
   a->pressure = air_pressure;
+  a->humidity = air_humidity;
   a->velocity = air_velocity;
   a->uncertainty = air_uncertainty;
   a->angle = M_PI / 180. * air_angle;
@@ -137,6 +138,18 @@ air_init (Air * a)
 }
 
 /**
+ * \fn void air_error (char *message)
+ * \brief function to show an error message opening an Air struct.
+ * \param message
+ * \brief error message.
+ */
+void
+air_error (char *message)
+{
+  error_message = g_strconcat (gettext ("Air file"), ": ", message, NULL);
+}
+
+/**
  * \fn void air_open_file(Air *a, FILE *file)
  * \brief function to open an Air struct in a file.
  * \param a
@@ -154,8 +167,7 @@ air_open_file (Air * a, FILE * file)
   if (fscanf (file, "%lf%lf%lf%lf%lf", &air_velocity, &air_angle,
               &air_temperature, &air_humidity, &air_pressure) != 5)
     {
-      error_message = g_strconcat (gettext ("Air file"), ": ",
-                                   gettext ("unable to open the data"), NULL);
+      air_error (gettext ("unable to open the data"));
 #if DEBUG_AIR
       fprintf (stderr, "air_open_file: end\n");
 #endif
@@ -214,16 +226,14 @@ air_open_xml (Air * a, xmlNode * node)
 #endif
   if (xmlStrcmp (node->name, XML_AIR))
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad label"), NULL);
+      air_error (gettext ("bad label"));
       goto exit_on_error;
     };
   air_pressure
     = xml_node_get_float_with_default (node, XML_PRESSURE, AIR_PRESSURE, &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad pressure"), NULL);
+      air_error (gettext ("bad pressure"));
       goto exit_on_error;
     };
   air_temperature
@@ -231,41 +241,34 @@ air_open_xml (Air * a, xmlNode * node)
                                        &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad temperature"), NULL);
+      air_error (gettext ("bad temperature"));
       goto exit_on_error;
     };
   air_humidity
     = xml_node_get_float_with_default (node, XML_HUMIDITY, AIR_HUMIDITY, &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad humidity"), NULL);
+      air_error (gettext ("bad humidity"));
       goto exit_on_error;
     };
   air_velocity
     = xml_node_get_float_with_default (node, XML_VELOCITY, WIND_VELOCITY, &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad wind velocity"), NULL);
+      air_error (gettext ("bad wind velocity"));
       goto exit_on_error;
     };
   air_angle = xml_node_get_float_with_default (node, XML_ANGLE, WIND_ANGLE, &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad wind velocity"), NULL);
+      air_error (gettext ("bad wind velocity"));
       goto exit_on_error;
     };
   air_height
     = xml_node_get_float_with_default (node, XML_HEIGHT, WIND_HEIGHT, &k);
   if (!k)
     {
-      error_message
-        = g_strconcat (gettext ("Air XML node"), ": ",
-                       gettext ("bad reference height to measure the wind"),
-                       NULL);
+      air_error (gettext ("bad reference height to measure the wind"));
       goto exit_on_error;
     };
   air_uncertainty
@@ -273,8 +276,7 @@ air_open_xml (Air * a, xmlNode * node)
                                        &k);
   if (!k)
     {
-      error_message = g_strconcat (gettext ("Air XML node"), ": ",
-                                   gettext ("bad wind uncertainty"), NULL);
+      air_error (gettext ("bad wind uncertainty"));
       goto exit_on_error;
     };
   air_init (a);

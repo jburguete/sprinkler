@@ -69,6 +69,7 @@ double air_viscosity (Air * a);
 double air_saturation_pressure (Air * a);
 void air_print (Air * a);
 void air_init (Air * a);
+void air_error (char *message);
 int air_open_file (Air * a, FILE * file);
 void air_open_console (Air * a);
 int air_open_xml (Air * a, xmlNode * node);

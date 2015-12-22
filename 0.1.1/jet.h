@@ -46,6 +46,7 @@ typedef struct
 } Jet;
 
 double jet_height (Jet * j, double x);
+void jet_error (char *message);
 int jet_open_file (Jet * j, FILE * file);
 void jet_open_console (Jet * j);
 int jet_open_xml (Jet * j, xmlNode * node);

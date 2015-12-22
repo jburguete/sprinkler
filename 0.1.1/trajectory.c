@@ -35,6 +35,7 @@ OF SUCH DAMAGE.
  */
 #define _GNU_SOURCE
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include <libxml/parser.h>
 #include <glib.h>
@@ -49,7 +50,20 @@ OF SUCH DAMAGE.
 #include "drop.h"
 #include "trajectory.h"
 
-#define DEBUG_TRAJECTORY 1      ///< macro to debug trajectory functions.
+#define DEBUG_TRAJECTORY 0      ///< macro to debug trajectory functions.
+
+/**
+ * \fn void trajectory_error (char *message)
+ * \brief function to show an error message opening a Trajectory struct.
+ * \param message
+ * \brief error message.
+ */
+void
+trajectory_error (char *message)
+{
+  error_message
+	= g_strconcat (gettext ("Trajectory file"), ": ", message, NULL);
+}
 
 /**
  * \fn int trajectory_open_file (Trajectory * t, Air *a, FILE * file)
@@ -72,18 +86,15 @@ trajectory_open_file (Trajectory * t, Air * a, FILE * file)
   if (!drop_open_file (t->drop, a, file))
     goto exit_on_error;
   if (fscanf (file, "%lf%lf%lf%s", &(t->bed_level), &(t->dt), &(t->cfl), buffer)
-	  != 4)
+      != 4)
     {
-	  error_message = g_strconcat (gettext ("Trajectory file"), ": ",
-			                       gettext ("unable to open the data"), NULL);
+      trajectory_error (gettext ("unable to open the data"));
       goto exit_on_error;
     }
   t->file = fopen (buffer, "w");
   if (!t->file)
     {
-	  error_message = g_strconcat (gettext ("Trajectory file"), ": ",
-			                       gettext ("unable to open the results file"),
-								   NULL);
+      trajectory_error (gettext ("unable to open the results file"));
       goto exit_on_error;
     }
 #if DEBUG_TRAJECTORY
@@ -149,42 +160,52 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
 #endif
   if (xmlStrcmp (node->name, XML_TRAJECTORY))
     {
+      trajectory_error (gettext ("bad label"));
       goto exit_on_error;
     }
+  if (!node->children)
+	{
+      trajectory_error (gettext ("no drop"));
+	  goto exit_on_error;
+	}
   if (!drop_open_xml (t->drop, a, node->children))
-    {
-      goto exit_on_error;
-    }
+    goto exit_on_error;
   t->bed_level = xml_node_get_float_with_default (node, XML_BED_LEVEL, 0., &k);
   if (!k)
     {
+      trajectory_error (gettext ("bad bed level"));
       goto exit_on_error;
     }
   t->dt = xml_node_get_float (node, XML_DT, &k);
   if (!k)
     {
+      trajectory_error (gettext ("bad time step size"));
       goto exit_on_error;
     }
   t->cfl = xml_node_get_float (node, XML_CFL, &k);
   if (!k)
     {
+      trajectory_error (gettext ("bad CFL number"));
       goto exit_on_error;
     }
   t->jet_length
     = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
   if (!k)
     {
+      trajectory_error (gettext ("bad jet length"));
       goto exit_on_error;
     }
   buffer = xmlGetProp (node, XML_FILE);
   if (!buffer)
     {
+      trajectory_error (gettext ("bad results file"));
       goto exit_on_error;
     }
-  t->file = fopen ((char *)buffer, "w");
+  t->file = fopen ((char *) buffer, "w");
   xmlFree (buffer);
   if (!t->file)
     {
+      trajectory_error (gettext ("unable to open the results file"));
       goto exit_on_error;
     }
 #if DEBUG_TRAJECTORY
@@ -210,14 +231,30 @@ void
 trajectory_jet (Trajectory * t)
 {
   Drop *d;
-  if (t->jet_length == 0.)
-    return;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet: start\n");
+#endif
   d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
   t->t = t->jet_length / sqrt (d->v[0] * d->v[0] + d->v[1] * d->v[1]);
   d->r[0] += t->t * d->v[0];
   d->r[1] += t->t * d->v[1];
   d->r[2] += t->t * (d->v[2] - 0.5 * G * t->t);
   d->v[2] -= G * t->t;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_jet: end\n");
+#endif
 }
 
 /**
@@ -234,7 +271,20 @@ trajectory_runge_kutta_4 (Trajectory * t, Air * a)
 {
   Drop d2[1], d3[1], d4[1], *d;
   double dt2, dt6;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_runge_kutta_4: start\n");
+#endif
   d = t->drop;
+  memcpy (d2, d, sizeof (Drop));
+  memcpy (d3, d, sizeof (Drop));
+  memcpy (d4, d, sizeof (Drop));
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_runge_kutta_4: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_runge_kutta_4: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_runge_kutta_4: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
   dt2 = 0.5 * t->dt;
   d2->r[0] = d->r[0] + dt2 * d->v[0];
   d2->r[1] = d->r[1] + dt2 * d->v[1];
@@ -265,6 +315,14 @@ trajectory_runge_kutta_4 (Trajectory * t, Air * a)
   d->v[1] += dt6 * (d->a[1] + d4->a[1] + 2.0 * (d2->a[1] + d3->a[1]));
   d->v[2] += dt6 * (d->a[2] + d4->a[2] + 2.0 * (d2->a[2] + d3->a[2]));
   t->t += t->dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_runge_kutta_4: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_runge_kutta_4: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_runge_kutta_4: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_runge_kutta_4: end\n");
+#endif
 }
 
 /**
@@ -280,7 +338,17 @@ trajectory_impact_correction (Trajectory * t, Air * a)
 {
   Drop *d;
   double dt, h;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_impact_correction: start\n");
+#endif
   d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_impact_correction: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_impact_correction: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_impact_correction: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
   drop_move (d, a);
   h = t->bed_level - d->r[2];
   dt = (-sqrt (d->v[2] * d->v[2] - 2. * h * d->a[2]) - d->v[2]) / d->a[2];
@@ -291,6 +359,14 @@ trajectory_impact_correction (Trajectory * t, Air * a)
   d->v[1] -= dt * d->a[1];
   d->v[2] -= dt * d->a[2];
   t->t -= dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_impact_correction: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_impact_correction: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_impact_correction: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_impact_correction: end\n");
+#endif
 }
 
 /**
@@ -306,7 +382,17 @@ trajectory_initial_correction (Trajectory * t, Air * a)
 {
   Drop *d;
   double dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_initial_correction: start\n");
+#endif
   d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_initial_correction: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_initial_correction: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_initial_correction: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
   drop_move (d, a);
   dt = (-sqrt (d->v[0] * d->v[0] + 2. * d->r[0] * d->a[2]) - d->v[0]) / d->a[0];
   d->r[0] -= dt * (d->v[0] - 0.5 * dt * d->a[0]);
@@ -316,6 +402,14 @@ trajectory_initial_correction (Trajectory * t, Air * a)
   d->v[1] -= dt * d->a[1];
   d->v[2] -= dt * d->a[2];
   t->t -= dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_initial_correction: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_initial_correction: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_initial_correction: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_initial_correction: end\n");
+#endif
 }
 
 /**
@@ -328,10 +422,16 @@ void
 trajectory_write (Trajectory * t)
 {
   Drop *d;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_write: start\n");
+#endif
   d = t->drop;
-  fprintf (t->file, "%lg %lg %lg %lg %lg %lg %lg %lg\n",
+  fprintf (t->file, "%lg %lg %lg %lg %lg %lg %lg %lg %lg\n",
            t->t, d->r[0], d->r[1], d->r[2], d->v[0], d->v[1], d->v[2],
-           -d->drag);
+           -d->drag, d->diameter);
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_write: end\n");
+#endif
 }
 
 /**
@@ -347,6 +447,10 @@ trajectory_calculate (Trajectory * t, Air * a)
 {
   Drop *drop;
   double dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_calculate: start\n");
+#endif
+  t->t = 0.;
   trajectory_write (t);
   trajectory_jet (t);
   drop = t->drop;
@@ -358,6 +462,9 @@ trajectory_calculate (Trajectory * t, Air * a)
     }
   trajectory_impact_correction (t, a);
   trajectory_write (t);
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_calculate: end\n");
+#endif
 }
 
 /**
@@ -373,16 +480,23 @@ trajectory_invert (Trajectory * t, Air * a)
 {
   Drop *drop;
   double dt;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_invert: start\n");
+#endif
+  t->t = 0.;
   drop = t->drop;
   for (dt = t->dt; drop->r[2] > t->bed_level && drop->r[0] > 0.;)
     {
       trajectory_write (t);
-      t->dt = fmin (dt, t->cfl / drop_move (drop, a));
+      t->dt = -fmin (dt, t->cfl / drop_move (drop, a));
       trajectory_runge_kutta_4 (t, a);
     }
-  if (drop->r[2] > t->bed_level)
+  if (drop->r[2] < t->bed_level)
     trajectory_impact_correction (t, a);
   if (drop->r[0] < 0.)
     trajectory_impact_correction (t, a);
   trajectory_write (t);
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_invert: end\n");
+#endif
 }

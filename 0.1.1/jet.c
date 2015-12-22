@@ -37,6 +37,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
@@ -47,6 +49,8 @@ OF SUCH DAMAGE.
 #include "drop.h"
 #include "trajectory.h"
 #include "jet.h"
+
+#define DEBUG_JET 0             ///< macro to debug jet functions.
 
 /**
  * \fn double jet_height (Jet *j, double x)
@@ -65,6 +69,18 @@ jet_height (Jet * j, double x)
 }
 
 /**
+ * \fn void jet_error (char *message)
+ * \brief function to show an error message opening a Jet struct.
+ * \param message
+ * \brief error message.
+ */
+void
+jet_error (char *message)
+{
+  error_message	= g_strconcat (gettext ("Jet file"), ": ", message, NULL);
+}
+
+/**
  * \fn int jet_open_file (Jet *j, FILE *file)
  * \brief function to open a Jet struct in a file.
  * \param j
@@ -77,9 +93,24 @@ int
 jet_open_file (Jet * j, FILE * file)
 {
   double *a;
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_file: start\n");
+#endif
   a = j->a;
   if (fscanf (file, "%lf%lf%lf%lf%lf", a, a + 1, a + 2, a + 3, a + 4) != 5)
-    return 0;
+    {
+      jet_error (gettext ("unable to open the data"));
+      goto exit_on_error;
+    }
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_file: end\n");
+#endif
+  return 1;
+
+exit_on_error:
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_file: end\n");
+#endif
   return 1;
 }
 
@@ -93,6 +124,9 @@ void
 jet_open_console (Jet * j)
 {
   double *a;
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_console: start\n");
+#endif
   a = j->a;
   printf ("Jet a0: ");
   scanf ("%lf", a);
@@ -104,6 +138,9 @@ jet_open_console (Jet * j)
   scanf ("%lf", a + 3);
   printf ("Jet a4: ");
   scanf ("%lf", a + 4);
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_console: end\n");
+#endif
 }
 
 /**
@@ -119,24 +156,54 @@ int
 jet_open_xml (Jet * j, xmlNode * node)
 {
   int k;
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_xml: start\n");
+#endif
   if (xmlStrcmp (node->name, XML_JET))
-    return 0;
+    {
+      jet_error (gettext ("bad label"));
+      goto exit_on_error;
+    }
   j->a[0] = xml_node_get_float_with_default (node, XML_A0, 0., &k);
   if (!k)
-    return 0;
+    {
+      jet_error (gettext ("bad a0"));
+      goto exit_on_error;
+    }
   j->a[1] = xml_node_get_float_with_default (node, XML_A1, 0., &k);
   if (!k)
-    return 0;
+    {
+      jet_error (gettext ("bad a1"));
+      goto exit_on_error;
+    }
   j->a[2] = xml_node_get_float_with_default (node, XML_A2, 0., &k);
   if (!k)
-    return 0;
+    {
+      jet_error (gettext ("bad a2"));
+      goto exit_on_error;
+    }
   j->a[3] = xml_node_get_float_with_default (node, XML_A3, 0., &k);
   if (!k)
-    return 0;
+    {
+      jet_error (gettext ("bad a3"));
+      goto exit_on_error;
+    }
   j->a[4] = xml_node_get_float_with_default (node, XML_A4, 0., &k);
   if (!k)
-    return 0;
+    {
+      jet_error (gettext ("bad a4"));
+      goto exit_on_error;
+    }
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_xml: end\n");
+#endif
   return 1;
+
+exit_on_error:
+#if DEBUG_JET
+  fprintf (stderr, "jet_open_xml: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -153,23 +220,33 @@ trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j)
 {
   Drop *drop;
   double dt, h1, h2;
+#if DEBUG_JET
+  fprintf (stderr, "trajectory_invert_with_jet: start\n");
+#endif
+  t->t = 0.;
   drop = t->drop;
   h1 = jet_height (j, drop->r[0]) - drop->r[2];
+#if DEBUG_JET
+  fprintf (stderr, "trajectory_invert_with_jet: h1=%lg\n", h1);
+#endif
   for (dt = t->dt; drop->r[2] > t->bed_level && drop->r[0] > 0. && h1 > 0.;
        h1 = h2)
     {
       trajectory_write (t);
-      t->dt = fmin (dt, t->cfl / drop_move (drop, a));
+      t->dt = -fmin (dt, t->cfl / drop_move (drop, a));
       trajectory_runge_kutta_4 (t, a);
       h2 = jet_height (j, drop->r[0]) - drop->r[2];
       if (h2 >= h1)
         break;
     }
-  if (drop->r[2] > t->bed_level)
+  if (drop->r[2] < t->bed_level)
     trajectory_impact_correction (t, a);
   if (drop->r[0] < 0.)
     trajectory_impact_correction (t, a);
   trajectory_write (t);
+#if DEBUG_JET
+  fprintf (stderr, "trajectory_invert_with_jet: end\n");
+#endif
 }
 
 #if HAVE_GTK
@@ -186,6 +263,10 @@ dialog_jet_new (Jet * j)
   char *label[5] = { "a0", "a1", "a2", "a3", "a4" };
   DialogJet dlg[1];
   unsigned int i;
+
+#if DEBUG_JET
+  fprintf (stderr, "dialog_jet_new: start\n");
+#endif
 
   dlg->grid = (GtkGrid *) gtk_grid_new ();
   for (i = 0; i < 5; ++i)
@@ -212,6 +293,11 @@ dialog_jet_new (Jet * j)
     for (i = 0; i < 5; ++i)
       j->a[i] = gtk_spin_button_get_value (dlg->spin_a[i]);
   gtk_widget_destroy ((GtkWidget *) dlg->window);
+
+#if DEBUG_JET
+  fprintf (stderr, "dialog_jet_new: end\n");
+#endif
+
 }
 
 #endif

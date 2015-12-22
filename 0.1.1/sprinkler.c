@@ -37,6 +37,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #if HAVE_GTK
 #include <gtk/gtk.h>
@@ -47,6 +49,8 @@ OF SUCH DAMAGE.
 #include "drop.h"
 #include "trajectory.h"
 #include "sprinkler.h"
+
+#define DEBUG_SPRINKLER 0       ///< macro to debug sprinkler functions.
 
 /**
  * \fn void trajectory_init_with_sprinkler (Trajectory *t, Sprinkler *s)
@@ -61,6 +65,9 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
 {
   Drop *d;
   double v, k2, k3;
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "trajectory_init_with_sprinkler: start\n");
+#endif
   d = t->drop;
   t->t = 0.;
   d->r[0] = s->x;
@@ -76,6 +83,21 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
   printf ("Time step size: %le\n", t->dt);
   printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
   printf ("Drop velocity: (%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "trajectory_init_with_sprinkler: end\n");
+#endif
+}
+
+/**
+ * \fn void sprinkler_error (char *message)
+ * \brief function to show an error message opening a Sprinkler struct.
+ * \param message
+ * \brief error message.
+ */
+void
+sprinkler_error (char *message)
+{
+  error_message	= g_strconcat (gettext ("Sprinkler file"), ": ", message, NULL);
 }
 
 /**
@@ -90,13 +112,30 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
 int
 sprinkler_open_file (Sprinkler * s, FILE * file)
 {
-  return fscanf (file, "%lf%lf%lf%lf%lf%lf%lf%lf",
-                 &(s->x),
-                 &(s->y),
-                 &(s->z),
-                 &(s->pressure),
-                 &(s->vertical_angle),
-                 &(s->horizontal_angle), &(s->jet_length), &(s->diameter)) == 8;
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_file: start\n");
+#endif
+  if (fscanf (file, "%lf%lf%lf%lf%lf%lf%lf%lf",
+              &(s->x),
+              &(s->y),
+              &(s->z),
+              &(s->pressure),
+              &(s->vertical_angle),
+              &(s->horizontal_angle), &(s->jet_length), &(s->diameter)) == 8)
+    {
+      sprinkler_error (gettext ("unable to open the data"));
+      goto exit_on_error;
+    }
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_file: end\n");
+#endif
+  return 1;
+
+exit_on_error:
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_file: end\n");
+#endif
+  return 0;
 }
 
 /**
@@ -108,6 +147,9 @@ sprinkler_open_file (Sprinkler * s, FILE * file)
 void
 sprinkler_open_console (Sprinkler * s)
 {
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_console: start\n");
+#endif
   printf ("Sprinkler x: ");
   scanf ("%lf", &(s->x));
   printf ("Sprinkler y: ");
@@ -124,6 +166,9 @@ sprinkler_open_console (Sprinkler * s)
   scanf ("%lf", &(s->jet_length));
   printf ("Nozzle diameter: ");
   scanf ("%lf", &(s->diameter));
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_console: end\n");
+#endif
 }
 
 /**
@@ -139,35 +184,74 @@ int
 sprinkler_open_xml (Sprinkler * s, xmlNode * node)
 {
   int k;
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_xml: start\n");
+#endif
   if (xmlStrcmp (node->name, XML_SPRINKLER))
-    return 0;
+    {
+      sprinkler_error (gettext ("bad label"));
+      goto exit_on_error;
+    }
   s->x = xml_node_get_float_with_default (node, XML_X, 0., &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad x"));
+      goto exit_on_error;
+    }
   s->y = xml_node_get_float_with_default (node, XML_Y, 0., &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad y"));
+      goto exit_on_error;
+    }
   s->z = xml_node_get_float_with_default (node, XML_Z, 0., &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad z"));
+      goto exit_on_error;
+    }
   s->pressure = xml_node_get_float (node, XML_PRESSURE, &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad pressure"));
+      goto exit_on_error;
+    }
   s->vertical_angle = xml_node_get_float (node, XML_VERTICAL_ANGLE, &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad vertical angle"));
+      goto exit_on_error;
+    }
   s->horizontal_angle
     = xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad horizontal angle"));
+      goto exit_on_error;
+    }
   s->jet_length
     = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad jet length"));
+      goto exit_on_error;
+    }
   s->diameter = xml_node_get_float (node, XML_DIAMETER, &k);
   if (!k)
-    return 0;
+    {
+      sprinkler_error (gettext ("bad nozzle diameter"));
+      goto exit_on_error;
+    }
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_xml: end\n");
+#endif
   return 1;
+
+exit_on_error:
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "sprinkler_open_xml: end\n");
+#endif
+  return 0;
 }
 
 #if HAVE_GTK
@@ -182,6 +266,10 @@ void
 dialog_sprinkler_new (Sprinkler * s)
 {
   DialogSprinkler dlg[1];
+
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "dialog_sprinkler_new: start\n");
+#endif
 
   dlg->label_x = (GtkLabel *) gtk_label_new ("x");
   dlg->spin_x = (GtkSpinButton *)
@@ -261,6 +349,11 @@ dialog_sprinkler_new (Sprinkler * s)
       s->diameter = gtk_spin_button_get_value (dlg->spin_diameter);
     }
   gtk_widget_destroy ((GtkWidget *) dlg->window);
+
+#if DEBUG_SPRINKLER
+  fprintf (stderr, "dialog_sprinkler_new: end\n");
+#endif
+
 }
 
 #endif

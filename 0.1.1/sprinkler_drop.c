@@ -39,6 +39,8 @@ OF SUCH DAMAGE.
 #include <stdio.h>
 #include <math.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #include "config.h"
 #include "utils.h"
@@ -101,6 +103,56 @@ init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
 }
 
 /**
+ * \fn int open_xml(char *name, Sprinkler * sprinkler, Air * air, Drop * drop, \
+ *   Trajectory * trajectory)
+ * \brief function to open all data in a file.
+ * \param name
+ * \brief file name.
+ * \param sprinkler
+ * \brief sprinkler struct.
+ * \param air
+ * \brief Air struct.
+ * \param trajectory.
+ * \brief Trajectory struct.
+ * \return 1 on success, 0 on error.
+ */
+int
+open_xml (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
+{
+  xmlDoc *doc;
+  xmlNode *node;
+  gsl_rng *rng;
+  rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set (rng, RANDOM_SEED);
+  doc = xmlParseFile (name);
+  if (!doc)
+	{
+	  error_message
+		= g_strconcat (gettext ("Unable to parse the input file"), NULL);
+	  goto exit_on_error;
+	}
+  node = xmlDocGetRootElement (doc);
+  if (!node || !node->children)
+	{
+	  error_message = g_strconcat (gettext ("Bad input file"), NULL);
+	  goto exit_on_error;
+    }
+  if (!sprinkler_open_xml (sprinkler, node))
+	goto exit_on_error;
+  node = node->children;
+  if (!air_open_xml (air, node))
+    goto exit_on_error;
+  if (!trajectory_open_xml (trajectory, air, node))
+    goto exit_on_error;
+  trajectory_init_with_sprinkler (trajectory, sprinkler);
+  return 1;
+
+exit_on_error:
+  show_error ();
+  return 0;
+}
+
+/**
  * \fn int main (int argn, char **argc)
  * \brief main function.
  * \param argn
@@ -116,37 +168,19 @@ main (int argn, char **argc)
   Air air[1];
   Trajectory trajectory[1];
   gsl_rng *rng;
-  FILE *file;
-  if (argn == 2)
-    {
-      init (sprinkler, air, trajectory);
-      file = fopen (argc[1], "w");
-    }
-  else if (argn == 3)
-    {
-      if (!open (argc[1], sprinkler, air, trajectory))
-        {
-          printf ("Unable to open the data file\n");
-          return 2;
-        }
-      file = fopen (argc[2], "w");
-    }
+  if (argn == 1)
+    init (sprinkler, air, trajectory);
+  else if (argn == 2 && !open_xml (argc[1], sprinkler, air, trajectory))
+    return 2;
   else
     {
-      printf
-        ("Usage of this program is:\n\ttrajectory file_data file_output\n");
+      printf ("Usage of this program is:\n\tsprinkler [file_data]\n");
       return 1;
-    }
-  if (!file)
-    {
-      printf ("Unable to open the output file\n");
-      return 3;
     }
   rng = gsl_rng_alloc (gsl_rng_taus);
   gsl_rng_set (rng, RANDOM_SEED);
   air_wind_uncertainty (air, rng);
   trajectory_calculate (trajectory, air);
   gsl_rng_free (rng);
-  fclose (file);
   return 0;
 }

@@ -53,6 +53,7 @@ typedef struct
 } Sprinkler;
 
 void trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s);
+void sprinkler_error (char *message);
 int sprinkler_open_file (Sprinkler * s, FILE * file);
 void sprinkler_open_console (Sprinkler * s);
 int sprinkler_open_xml (Sprinkler * s, xmlNode * node);

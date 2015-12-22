@@ -10,6 +10,8 @@
 #include <math.h>
 #include <string.h>
 #include <libxml/parser.h>
+#include <glib.h>
+#include <libintl.h>
 #include <gsl/gsl_rng.h>
 #include "config.h"
 #include "utils.h"
@@ -49,20 +51,28 @@ open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
   gsl_rng_set (rng, RANDOM_SEED);
   doc = xmlParseFile (name);
   if (!doc)
-    return 0;
+	{
+	  error_message
+		= g_strconcat (gettext ("Unable to parse the input file"), NULL);
+	  goto exit_on_error;
+	}
   node = xmlDocGetRootElement (doc);
-  if (!node || xmlStrcmp (node->name, XML_INVERT))
-    return 0;
+  if (!node || xmlStrcmp (node->name, XML_INVERT) || !node->children)
+	{
+	  error_message = g_strconcat (gettext ("Bad input file"), NULL);
+	  goto exit_on_error;
+    }
   node = node->children;
   if (!air_open_xml (air, node))
-    return 0;
+    goto exit_on_error;
+  node = node->next;
   if (!jet_open_xml (jet, node))
-    return 0;
+    goto exit_on_error;
   drop = trajectory->drop;
   for (node = node->next; node; node = node->next)
     {
       if (!trajectory_open_xml (trajectory, air, node))
-        return 0;
+        goto exit_on_error;
 	  air_wind_uncertainty (air, rng);
       drop_print_parabolic (drop);
       trajectory_invert_with_jet (trajectory, air, jet);
@@ -70,6 +80,10 @@ open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
     }
   gsl_rng_free (rng);
   return 1;
+
+exit_on_error:
+  show_error ();
+  return 0;
 }
 
 int
@@ -80,25 +94,13 @@ main (int argn, char **argc)
   Trajectory trajectory[1];
   Jet jet[1];
   xmlKeepBlanksDefault (0);
-  if (argn < 2 || argn > 3)
+  if (argn > 2)
     {
-      printf ("Usage of this program is:\n\tinvert file_data [file_output]\n");
+      printf ("Usage of this program is:\n\tinvert file_data\n");
       return 1;
     }
-  if (argn == 3)
-    {
-      file = fopen (argc[2], "w");
-      if (!file)
-        {
-          printf ("Unable to open the output file\n");
-          return 3;
-        }
-    }
   if (!open_xml (argc[1], air, trajectory, jet))
-    {
-      printf ("Unable to open the data file\n");
-      return 3;
-    }
+    return 3;
   if (file)
     fclose (file);
   return 0;

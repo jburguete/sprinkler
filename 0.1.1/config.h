@@ -72,10 +72,14 @@ OF SUCH DAMAGE.
   ///< bed_level XML label.
 #define XML_CFL              (const xmlChar*)"cfl"
   ///< cfl XML label.
+#define XML_CONSTANT         (const xmlChar*)"constant"
+  ///< constant XML label.
 #define XML_DIAMETER         (const xmlChar*)"diameter"
   ///< diameter XML label.
 #define XML_DRAG             (const xmlChar*)"drag"
-  ///< drop XML label.
+  ///< drag XML label.
+#define XML_DRAG_MODEL       (const xmlChar*)"drag_model"
+  ///< drag_model XML label.
 #define XML_DROP             (const xmlChar*)"drop"
   ///< drop XML label.
 #define XML_DT               (const xmlChar*)"dt"
@@ -94,8 +98,12 @@ OF SUCH DAMAGE.
   ///< jet XML label.
 #define XML_JET_LENGTH       (const xmlChar*)"jet_length"
   ///< jet_length XML label.
+#define XML_OVOID            (const xmlChar*)"ovoid"
+  ///< ovoid XML label.
 #define XML_PRESSURE         (const xmlChar*)"pressure"
   ///< pressure XML label.
+#define XML_SPHERE           (const xmlChar*)"sphere"
+  ///< sphere XML label.
 #define XML_SPRINKLER        (const xmlChar*)"sprinkler"
   ///< sprinkler XML label.
 #define XML_TEMPERATURE      (const xmlChar*)"temperature"

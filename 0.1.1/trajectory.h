@@ -51,6 +51,7 @@ typedef struct
   FILE *file;                   ///< results file.
 } Trajectory;
 
+void trajectory_error (char *message);
 int trajectory_open_file (Trajectory * t, Air * a, FILE * file);
 void trajectory_open_console (Trajectory * t, Air * a);
 int trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node);
