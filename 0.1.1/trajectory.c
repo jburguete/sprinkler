@@ -454,7 +454,7 @@ trajectory_calculate (Trajectory * t, Air * a)
   trajectory_write (t);
   trajectory_jet (t);
   drop = t->drop;
-  for (dt = t->dt; drop->r[2] > t->bed_level;)
+  for (dt = t->dt; drop->r[2] > t->bed_level || drop->v[2] > 0.;)
     {
       trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (drop, a));

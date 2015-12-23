@@ -142,6 +142,7 @@ open_xml (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
   node = node->children;
   if (!air_open_xml (air, node))
     goto exit_on_error;
+  node = node->next;
   if (!trajectory_open_xml (trajectory, air, node))
     goto exit_on_error;
   trajectory_init_with_sprinkler (trajectory, sprinkler);
@@ -168,10 +169,14 @@ main (int argn, char **argc)
   Air air[1];
   Trajectory trajectory[1];
   gsl_rng *rng;
+  xmlKeepBlanksDefault (0);
   if (argn == 1)
     init (sprinkler, air, trajectory);
-  else if (argn == 2 && !open_xml (argc[1], sprinkler, air, trajectory))
-    return 2;
+  else if (argn == 2)
+	{
+      if (!open_xml (argc[1], sprinkler, air, trajectory))
+        return 2;
+	}
   else
     {
       printf ("Usage of this program is:\n\tsprinkler [file_data]\n");

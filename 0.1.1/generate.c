@@ -20,7 +20,7 @@ int main()
 	  fprintf (file2, "\t\t<drop diameter=\"%.14le\" velocity=\"%.14le\" "
 			   "vertical_angle=\"%lg\" x=\"%lg\" z=\"%lg\" "
 			   "drag_model=\"ovoid\"/>\n",
-			   x[3] / 1000., x[4], -x[2], x[1], x[0] / 100.);
+			   x[3] / 1000., x[4], -x[2], x[1], x[0]);
 	  fprintf (file2, "\t</trajectory>\n");
 	}
   fprintf (file2, "</invert>\n");

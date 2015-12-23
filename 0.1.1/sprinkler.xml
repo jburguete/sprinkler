@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <sprinkler pressure="200000" vertical_angle="25" diameter="0.004">
 	<air/>
-	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="s-5.5">
+	<trajectory bed_level="0" dt="0.001" cfl="0.1" file="s-5.5">
 		<drop diameter="5.5e-3" drag_model="ovoid"/>
 	</trajectory>
 </sprinkler>

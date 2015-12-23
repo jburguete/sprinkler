@@ -430,8 +430,8 @@ drop_drag_sphere (Drop * d, Air * a, double v)
 double
 drop_drag_ovoid (Drop * d, Air * a, double v)
 {
-  drop_axis_ratio (d, a, v);
-  return drop_drag_sphere (d, a, v)
+  d->axis_ratio = drop_axis_ratio (d, a, v);
+  return drop_drag_sphere (d, a, v) / pow (d->axis_ratio, 2. / 3.)
     * (3.709 + d->axis_ratio * (-5.519 + 2.731 * d->axis_ratio));
 }
 
