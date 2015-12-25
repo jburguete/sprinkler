@@ -77,7 +77,7 @@ jet_height (Jet * j, double x)
 void
 jet_error (char *message)
 {
-  error_message	= g_strconcat (gettext ("Jet file"), ": ", message, NULL);
+  error_message = g_strconcat (gettext ("Jet file"), ": ", message, NULL);
 }
 
 /**
@@ -233,8 +233,8 @@ trajectory_invert_with_jet (Trajectory * t, Air * a, Jet * j)
        h1 = h2)
     {
       trajectory_write (t);
-      t->dt = -fmin (dt, t->cfl / drop_move (drop, a));
-      trajectory_runge_kutta_4 (t, a);
+      t->dt = -fmin (dt, t->cfl / drop_move (drop, a, 1.));
+      trajectory_runge_kutta_4 (t, a, 1.);
       h2 = jet_height (j, drop->r[0]) - drop->r[2];
       if (h2 >= h1)
         break;

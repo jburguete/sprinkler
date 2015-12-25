@@ -1,27 +1,76 @@
-set term png
+#set term png
+#set xlabel 'x (m)'
+#set ylabel 'z (m)'
+#set out 't-200-0,8.png'
+#plot [0:15][0:] 't-1-200-0.8' u 2:4 w l lw 2 t'D=1mm',\
+#	't-2-200-0.8' u 2:4 w l lw 2 t'D=2mm',\
+#	't-3-200-0.8' u 2:4 w l lw 2 t'D=3mm',\
+#	't-4-200-0.8' u 2:4 w l lw 2 t'D=4mm',\
+#	't-5-200-0.8' u 2:4 w l lw 2 t'D=5mm'
+#set out 'i.png'
+#plot [2:10.5][0:] 'out6-120' u 2:4 w l lw 2 t'c_d=1.20',\
+#	'out6-080' u 2:4 w l lw 2 t'c_d=0.80',\
+#	'out6-050' u 2:4 w l lw 2 t'c_d=0.50',\
+#	'out10,5-120' u 2:4 w l lt 1 lw 2 not,\
+#	'out10,5-080' u 2:4 w l lt 2 lw 2 not,\
+#	'out10,5-050' u 2:4 w l lt 3 lw 2 not
+#set size ratio 8./13.
+#set label 1 '4m/s' at 2,4.5 center
+#set arrow 1 from 2.5,4.5 to 3.5,4.5
+#set out 'v.png'
+#plot [0:13][-3:5] 0.4800*x-0.0104*x**2-0.00188*x**3 w l lt rgb '#000000' \
+#	t'Chorro principal',\
+#	'Gotas4.txt' w vec lt rgb '#FF0000' t'D>4mm',\
+#	'Gotas3.txt' w vec lt rgb '#777700' t'4mm>D>3mm',\
+#	'Gotas2.txt' w vec lt rgb '#00FF00' t'3mm>D>2mm',\
+#	'Gotas1.txt' w vec lt rgb '#007777' t'2mm>D>1mm',\
+#	'Gotas0.txt' w vec lt rgb '#0000FF' t'1mm>D'
+
+set term pos eps enh 12
+set size ratio 1 0.6,0.6
+set xlabel 'D_{max} (mm)'
+set ylabel 'D_{eq} (mm)'
+set out 'DeqDmax.eps'
+plot [0:7] x not w l lt 1 lw 0.2,'DatosGotas2.txt' u ($4*1000):($6*1000) not w d
+
+set size 0.47,0.47
+set xlabel 'D_{eq} (mm)'
+set ylabel 'v (m/s)'
+set out 'vDeq.eps'
+plot 'DatosGotas2.txt' u ($6*1000):5 t'Velocity' w d
+
+set xlabel 'x (m)'
+set out 'vx.eps'
+plot 'DatosGotas2.txt' u 2:5 t'Velocity' w d
+
+set xlabel 'z (m)'
+set out 'vz.eps'
+plot 'DatosGotas2.txt' u 1:5 t'Velocity' w d
+
+set size ratio 7./14. 0.96,0.72
 set xlabel 'x (m)'
 set ylabel 'z (m)'
-set out 't-200-0,8.png'
-plot [0:15][0:] 't-1-200-0.8' u 2:4 w l lw 2 t'D=1mm',\
-	't-2-200-0.8' u 2:4 w l lw 2 t'D=2mm',\
-	't-3-200-0.8' u 2:4 w l lw 2 t'D=3mm',\
-	't-4-200-0.8' u 2:4 w l lw 2 t'D=4mm',\
-	't-5-200-0.8' u 2:4 w l lw 2 t'D=5mm'
-set out 'i.png'
-plot [2:10.5][0:] 'out6-120' u 2:4 w l lw 2 t'c_d=1.20',\
-	'out6-080' u 2:4 w l lw 2 t'c_d=0.80',\
-	'out6-050' u 2:4 w l lw 2 t'c_d=0.50',\
-	'out10,5-120' u 2:4 w l lt 1 lw 2 not,\
-	'out10,5-080' u 2:4 w l lt 2 lw 2 not,\
-	'out10,5-050' u 2:4 w l lt 3 lw 2 not
-set size ratio 8./13.
-set label 1 '4m/s' at 2,4.5 center
-set arrow 1 from 2.5,4.5 to 3.5,4.5
-set out 'v.png'
-plot [0:13][-3:5] 0.4800*x-0.0104*x**2-0.00188*x**3 w l lt rgb '#000000' \
-	t'Chorro principal',\
-	'Gotas4.txt' w vec lt rgb '#FF0000' t'D>4mm',\
-	'Gotas3.txt' w vec lt rgb '#777700' t'4mm>D>3mm',\
-	'Gotas2.txt' w vec lt rgb '#00FF00' t'3mm>D>2mm',\
-	'Gotas1.txt' w vec lt rgb '#007777' t'2mm>D>1mm',\
-	'Gotas0.txt' w vec lt rgb '#0000FF' t'1mm>D'
+set label 1 '4m/s' at 2,3.5 center
+set arrow 1 from 2.5,3.5 to 3.5,3.5
+f(x)=0.4403*x+6.447e-3*x**2-3.969e-3*x**3+8.113e-5*x**4
+set out 'vxz.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
+	'Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
+	'Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
+	'Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
+	'Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
+	'Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
+
+unset label 1
+unset arrow 1
+set size 0.7,0.7
+set xlabel 'x (m)'
+set ylabel 'z (m)'
+set out 'jet-models.eps'
+plot [][0:3.5] \
+	'trayectoriapiluca2011.csv' u ($1/100):($2/100) t'Measured' w p pt 6,\
+	'vyr-5.5-nd' u 2:4 t'Null drag (T_{jet}=0.146 s)' w l lt 1,\
+	'vyr-5.5-pi' u 2:4 t'Progressive (T_{jet}=0.749 s)' w l lt 2,\
+	'v-vyr-9.0-b' u 2:4 t'Ballistic (T_{jet}=0 s)' w l lt 3,\
+	'v-vyr-8.0-b' u 2:4 t'Ballistic (T_{jet}=0 s)' w l lt 5,\
+	'vyr-5.5-b' u 2:4 t'Ballistic (T_{jet}=0 s)' w l lt 4

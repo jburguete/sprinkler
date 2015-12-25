@@ -52,6 +52,7 @@ OF SUCH DAMAGE.
 #define DEBUG_DROP 0            ///< macro to debug drop functions.
 
 double drop_diameter;           ///< drop diameter.
+double drop_jet_model;          ///< drop jet model.
 double drop_velocity;           ///< drop initial velocity.
 double drop_horizontal_angle;
   ///< horizontal angle of the drop initial velocity.
@@ -140,6 +141,7 @@ drop_init (Drop * d, Air * a)
   fprintf (stderr, "drop_init: start\n");
 #endif
   d->diameter = drop_diameter;
+  d->jet_model = drop_jet_model;
   d->density = water_density (a);
   d->surface_tension = water_surface_tension (a->kelvin);
   printf ("Drop density = %le\n", d->density);
@@ -178,14 +180,14 @@ drop_open_file (Drop * d, Air * a, FILE * file)
 #if DEBUG_DROP
   fprintf (stderr, "drop_open_file: start\n");
 #endif
-  if (fscanf (file, "%lf", &drop_diameter) != 1)
-	{
-	  drop_error (gettext ("unable to open the data"));
+  if (fscanf (file, "%lf%u", &drop_diameter, &drop_jet_model) != 2)
+    {
+      drop_error (gettext ("unable to open the data"));
 #if DEBUG_DROP
       fprintf (stderr, "drop_open_file: end\n");
 #endif
       return 0;
-	}
+    }
   drop_init (d, a);
 #if DEBUG_DROP
   fprintf (stderr, "drop_open_file: end\n");
@@ -211,6 +213,8 @@ drop_open_console (Drop * d, Air * a)
 #endif
   printf ("Drop diameter: ");
   scanf ("%lf", &drop_diameter);
+  printf ("Drop jet model (0: total, 1: random): ");
+  scanf ("%u", &drop_jet_model);
   drop_init (d, a);
 #if DEBUG_DROP
   fprintf (stderr, "drop_open_console: end\n");
@@ -244,77 +248,87 @@ drop_open_xml (Drop * d, Air * a, xmlNode * node)
   drop_diameter = xml_node_get_float (node, XML_DIAMETER, &k);
   if (!k)
     {
-	  drop_error (gettext ("bad diameter"));
+      drop_error (gettext ("bad diameter"));
       goto exit_on_error;
     }
   d->r[0] = xml_node_get_float_with_default (node, XML_X, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad x"));
+      drop_error (gettext ("bad x"));
       goto exit_on_error;
     }
   d->r[1] = xml_node_get_float_with_default (node, XML_Y, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad y"));
+      drop_error (gettext ("bad y"));
       goto exit_on_error;
     }
   d->r[2] = xml_node_get_float_with_default (node, XML_Z, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad z"));
+      drop_error (gettext ("bad z"));
       goto exit_on_error;
     }
   drop_velocity = xml_node_get_float_with_default (node, XML_VELOCITY, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad velocity"));
+      drop_error (gettext ("bad velocity"));
       goto exit_on_error;
     }
   drop_horizontal_angle
     = xml_node_get_float_with_default (node, XML_HORIZONTAL_ANGLE, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad horizontal angle"));
+      drop_error (gettext ("bad horizontal angle"));
       goto exit_on_error;
     }
   drop_vertical_angle
     = xml_node_get_float_with_default (node, XML_VERTICAL_ANGLE, 0., &k);
   if (!k)
     {
-	  drop_error (gettext ("bad vertical angle"));
+      drop_error (gettext ("bad vertical angle"));
       goto exit_on_error;
     }
   buffer = xmlGetProp (node, XML_DRAG_MODEL);
   if (!buffer)
-	{
-	  drop_error (gettext ("no drag model"));
-	  goto exit_on_error;
-	}
+    {
+      drop_error (gettext ("no drag model"));
+      goto exit_on_error;
+    }
   if (!xmlStrcmp (buffer, XML_CONSTANT))
-	{
-	  drop_drag = drop_drag_constant;
-	  drop_drag_coefficient
-		= xml_node_get_float_with_default (node, XML_DRAG, 0., &k);
-	  if (!k)
-		{
-		  drop_error (gettext ("bad drag value"));
-		  goto exit_on_error;
-		}
-	}
+    {
+      drop_drag = drop_drag_constant;
+      drop_drag_coefficient
+        = xml_node_get_float_with_default (node, XML_DRAG, 0., &k);
+      if (!k)
+        {
+          drop_error (gettext ("bad drag value"));
+          goto exit_on_error;
+        }
+    }
   else if (!xmlStrcmp (buffer, XML_SPHERE))
-	drop_drag = drop_drag_sphere;
+    drop_drag = drop_drag_sphere;
   else if (!xmlStrcmp (buffer, XML_OVOID))
     {
-	  drop_axis_ratio = drop_axis_ratio_Burguete;
-	  drop_drag = drop_drag_ovoid;
-	}
+      drop_axis_ratio = drop_axis_ratio_Burguete;
+      drop_drag = drop_drag_ovoid;
+    }
   else
-	{
-	  drop_error (gettext ("unknown drag resistance model"));
-	  goto exit_on_error;
-	}
+    {
+      drop_error (gettext ("unknown drag resistance model"));
+      goto exit_on_error;
+    }
   xmlFree (buffer);
+  buffer = xmlGetProp (node, XML_JET_MODEL);
+  if (!buffer || !xmlStrcmp (buffer, XML_TOTAL))
+    drop_jet_model = DROP_JET_MODEL_TOTAL;
+  else if (!xmlStrcmp (node, XML_RANDOM))
+    drop_jet_model = DROP_JET_MODEL_RANDOM;
+  else
+    {
+      drop_error (gettext ("unknown jet model"));
+      goto exit_on_error;
+    }
   sincos (M_PI / 180. * drop_horizontal_angle, &sh, &ch);
   sincos (M_PI / 180. * drop_vertical_angle, &sv, &cv);
   d->v[0] = drop_velocity * cv * ch;
@@ -354,15 +368,15 @@ drop_axis_ratio_Burguete (Drop * d, Air * a, double v)
   fprintf (stderr, "drop_axis_ratio_Burguete: air density=%lg\n", a->density);
   fprintf (stderr, "drop_axis_ratio_Burguete: drop velocity=%lg\n", v);
   fprintf (stderr, "drop_axis_ratio_Burguete: drop diameter=%lg\n",
-		   d->diameter);
+           d->diameter);
   fprintf (stderr, "drop_axis_ratio_Burguete: drop surface tension=%lg\n",
-		   d->surface_tension);
+           d->surface_tension);
 #endif
   Weber = 0.25 * a->density * v * v * d->diameter / d->surface_tension;
   ratio = fmax (1. - 0.1742 * Weber, 0.642);
 #if DEBUG_DROP
   fprintf (stderr, "drop_axis_ratio_Burguete: Weber=%lg axis_ratio=%lg\n",
-		   Weber, ratio);
+           Weber, ratio);
 #endif
   return ratio;
 }
@@ -436,17 +450,19 @@ drop_drag_ovoid (Drop * d, Air * a, double v)
 }
 
 /**
- * \fn double drop_move (Drop * d, Air *a)
+ * \fn double drop_move (Drop * d, Air *a, double factor)
  * \brief function to calculate drag resistance factor and the acceleration
  *   vector of a drop.
  * \param d
  * \brief drop struct.
  * \param a
  * \brief air struct.
+ * \param factor
+ * \brief drag resistance factor.
  * \return drag resistance factor.
  */
 double
-drop_move (Drop * d, Air * a)
+drop_move (Drop * d, Air * a, double factor)
 {
   double vrx, vry, v;
 #if DEBUG_DROP
@@ -459,8 +475,8 @@ drop_move (Drop * d, Air * a)
   fprintf (stderr, "drop_move: vr=(%lg,%lg,%lg) v=%lg\n", vrx, vry, d->v[2], v);
   fprintf (stderr, "drop_move: cd=%lg\n", drop_drag (d, a, v));
 #endif
-  d->drag =
-    -0.75 * v * drop_drag (d, a, v) * a->density / (d->density * d->diameter);
+  d->drag = -0.75 * factor * v * drop_drag (d, a, v) * a->density
+    / (d->density * d->diameter);
   d->a[0] = d->drag * vrx;
   d->a[1] = d->drag * vry;
   d->a[2] = -(1. - a->density / d->density) * G + d->drag * d->v[2];

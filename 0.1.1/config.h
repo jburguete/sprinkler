@@ -47,6 +47,7 @@ OF SUCH DAMAGE.
 #define AIR_HUMIDITY 100.       ///< saturated relative humidity.
 #define AIR_PRESSURE 101325.    ///< atmospheric pressure.
 #define AIR_TEMPERATURE 20.     ///< normal atmospheric temperature in Celsius.
+#define MAXIMUM_DROP_DIAMETER 0.0055    ///< maximum diameter of stable drops.
 #define RANDOM_SEED 7007        ///< pseudo-random numbers generator seed.
 #define WIND_ANGLE 0.           ///< wind azimuth angle.
 #define WIND_HEIGHT 2.          ///< reference height to measure the wind.
@@ -70,6 +71,8 @@ OF SUCH DAMAGE.
   ///< angle XML label.
 #define XML_BED_LEVEL        (const xmlChar*)"bed_level"
   ///< bed_level XML label.
+#define XML_BIG_DROPS        (const xmlChar*)"big_drops"
+  ///< big_drops XML label.
 #define XML_CFL              (const xmlChar*)"cfl"
   ///< cfl XML label.
 #define XML_CONSTANT         (const xmlChar*)"constant"
@@ -96,18 +99,28 @@ OF SUCH DAMAGE.
   ///< invert XML label.
 #define XML_JET              (const xmlChar*)"jet"
   ///< jet XML label.
-#define XML_JET_LENGTH       (const xmlChar*)"jet_length"
-  ///< jet_length XML label.
+#define XML_JET_MODEL        (const xmlChar*)"jet_model"
+  ///< jet_model XML label.
+#define XML_JET_TIME         (const xmlChar*)"jet_time"
+  ///< jet_time XML label.
+#define XML_NULL_DRAG        (const xmlChar*)"null_drag"
+  ///< null_drag XML label.
 #define XML_OVOID            (const xmlChar*)"ovoid"
   ///< ovoid XML label.
 #define XML_PRESSURE         (const xmlChar*)"pressure"
   ///< pressure XML label.
+#define XML_PROGRESSIVE      (const xmlChar*)"progressive"
+  ///< progressive XML label.
+#define XML_RANDOM           (const xmlChar*)"random"
+  ///< random XML label.
 #define XML_SPHERE           (const xmlChar*)"sphere"
   ///< sphere XML label.
 #define XML_SPRINKLER        (const xmlChar*)"sprinkler"
   ///< sprinkler XML label.
 #define XML_TEMPERATURE      (const xmlChar*)"temperature"
   ///< temperature XML label.
+#define XML_TOTAL            (const xmlChar*)"total"
+  ///< total XML label.
 #define XML_TRAJECTORY       (const xmlChar*)"trajectory"
   ///< trajectory XML label.
 #define XML_UNCERTAINTY      (const xmlChar*)"uncertainty"

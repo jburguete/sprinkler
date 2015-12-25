@@ -37,26 +37,43 @@ OF SUCH DAMAGE.
 #define TRAJECTORY__H 1
 
 /**
+ * \enum TrajectoryJetModel
+ * \brief enum to define the trajectory jet models.
+ */
+enum TrajectoryJetModel
+{
+  TRAJECTORY_JET_MODEL_NULL_DRAG = 0,   ///< null drag resistance.
+  TRAJECTORY_JET_MODEL_PROGRESSIVE = 1, ///< progressively increasing.
+  TRAJECTORY_JET_MODEL_BIG_DROPS = 2    ///< big drops movement.
+};
+
+/**
  * \struct Trajectory
  * \brief struct to define a drop trajectory.
  */
 typedef struct
 {
   Drop drop[1];                 ///< drop data.
+  FILE *file;                   ///< results file.
   double t;                     ///< time.
   double dt;                    ///< numerical time step size.
   double cfl;                   ///< stability number.
   double bed_level;             ///< bed level.
-  double jet_length;            ///< length of the exiting jet.
-  FILE *file;                   ///< results file.
+  double jet_time;              ///< time of the emitted jet.
+  unsigned int jet_model;       ///< jet model type.
 } Trajectory;
 
+extern void (*trajectory_jet) (Trajectory * t, Air * a);
+
+void trajectory_init (Trajectory * t, gsl_rng * rng);
 void trajectory_error (char *message);
-int trajectory_open_file (Trajectory * t, Air * a, FILE * file);
-void trajectory_open_console (Trajectory * t, Air * a);
-int trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node);
-void trajectory_jet (Trajectory * t);
-void trajectory_runge_kutta_4 (Trajectory * t, Air * a);
+int trajectory_open_file (Trajectory * t, Air * a, FILE * file, char *name);
+void trajectory_open_console (Trajectory * t, Air * a, char *name);
+int trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name);
+void trajectory_runge_kutta_4 (Trajectory * t, Air * a, double factor);
+void trajectory_jet_null_drag (Trajectory * t, Air * a);
+void trajectory_jet_progressive (Trajectory * t, Air * a);
+void trajectory_jet_big_drops (Trajectory * t, Air * a);
 void trajectory_impact_correction (Trajectory * t, Air * a);
 void trajectory_initial_correction (Trajectory * t, Air * a);
 void trajectory_write (Trajectory * t);

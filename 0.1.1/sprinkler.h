@@ -48,7 +48,7 @@ typedef struct
   double pressure;              ///< water pressure.
   double vertical_angle;        ///< vertical angle.
   double horizontal_angle;      ///< horizontal angle.
-  double jet_length;            ///< length of the exiting jet.
+  double jet_time;              ///< time of the emitted jet.
   double diameter;              ///< nozzle diameter.
 } Sprinkler;
 
@@ -72,7 +72,7 @@ typedef struct
   GtkLabel *label_pressure;     ///< pressure GtkLabel.
   GtkLabel *label_vertical_angle;       ///< vertical angle GtkLabel.
   GtkLabel *label_horizontal_angle;     ///< horizontal angle GtkLabel.
-  GtkLabel *label_jet_length;   ///< jet length GtkLabel.
+  GtkLabel *label_jet_time;     ///< jet time GtkLabel.
   GtkLabel *label_diameter;     ///< nozzle diameter GtkLabel.
   GtkSpinButton *spin_x;        ///< x GtkSpinButton.
   GtkSpinButton *spin_y;        ///< y GtkSpinButton.
@@ -80,7 +80,7 @@ typedef struct
   GtkSpinButton *spin_pressure; ///< pressure GtkSpinButton.
   GtkSpinButton *spin_vertical_angle;   ///< vertical angle GtkSpinButton.
   GtkSpinButton *spin_horizontal_angle; ///< horizontal angle GtkSpinButton.
-  GtkSpinButton *spin_jet_length;       ///< jet length GtkSpinButton.
+  GtkSpinButton *spin_jet_time; ///< jet time GtkSpinButton.
   GtkSpinButton *spin_diameter; ///< nozzle diameter GtkSpinButton.
   GtkGrid *grid;                ///< GtkGrid to pack the widgets.
   GtkDialog *window;            ///< GtkDialog to show the widgets.

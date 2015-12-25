@@ -79,10 +79,11 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
   d->v[0] = v * cos (k3) * cos (k2);
   d->v[1] = v * cos (k3) * sin (k2);
   d->v[2] = v * sin (k3);
-  t->jet_length = s->jet_length;
+  t->jet_time = s->jet_time;
   printf ("Time step size: %le\n", t->dt);
   printf ("Water pressure: %le\nDrop density: %le\n", s->pressure, d->density);
   printf ("Drop velocity: (%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
+  printf ("Jet time: %lg\n", t->jet_time);
 #if DEBUG_SPRINKLER
   fprintf (stderr, "trajectory_init_with_sprinkler: end\n");
 #endif
@@ -97,7 +98,7 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
 void
 sprinkler_error (char *message)
 {
-  error_message	= g_strconcat (gettext ("Sprinkler file"), ": ", message, NULL);
+  error_message = g_strconcat (gettext ("Sprinkler file"), ": ", message, NULL);
 }
 
 /**
@@ -121,7 +122,7 @@ sprinkler_open_file (Sprinkler * s, FILE * file)
               &(s->z),
               &(s->pressure),
               &(s->vertical_angle),
-              &(s->horizontal_angle), &(s->jet_length), &(s->diameter)) == 8)
+              &(s->horizontal_angle), &(s->jet_time), &(s->diameter)) == 8)
     {
       sprinkler_error (gettext ("unable to open the data"));
       goto exit_on_error;
@@ -162,8 +163,8 @@ sprinkler_open_console (Sprinkler * s)
   scanf ("%lf", &(s->vertical_angle));
   printf ("Jet horizontal angle: ");
   scanf ("%lf", &(s->horizontal_angle));
-  printf ("Jet length: ");
-  scanf ("%lf", &(s->jet_length));
+  printf ("Jet time: ");
+  scanf ("%lf", &(s->jet_time));
   printf ("Nozzle diameter: ");
   scanf ("%lf", &(s->diameter));
 #if DEBUG_SPRINKLER
@@ -229,8 +230,7 @@ sprinkler_open_xml (Sprinkler * s, xmlNode * node)
       sprinkler_error (gettext ("bad horizontal angle"));
       goto exit_on_error;
     }
-  s->jet_length
-    = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
+  s->jet_time = xml_node_get_float_with_default (node, XML_JET_TIME, 0., &k);
   if (!k)
     {
       sprinkler_error (gettext ("bad jet length"));
@@ -283,23 +283,26 @@ dialog_sprinkler_new (Sprinkler * s)
   dlg->spin_z = (GtkSpinButton *)
     gtk_spin_button_new_with_range (-1000., 1000., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->z);
-  dlg->label_pressure = (GtkLabel *) gtk_label_new ("pressure");
+  dlg->label_pressure = (GtkLabel *) gtk_label_new (gettext ("Pressure"));
   dlg->spin_pressure = (GtkSpinButton *)
     gtk_spin_button_new_with_range (100000., 600000., 1.);
   gtk_spin_button_set_value (dlg->spin_diameter, s->pressure);
-  dlg->label_vertical_angle = (GtkLabel *) gtk_label_new ("vertical_angle");
+  dlg->label_vertical_angle
+    = (GtkLabel *) gtk_label_new (gettext ("Vertical angle"));
   dlg->spin_vertical_angle = (GtkSpinButton *)
     gtk_spin_button_new_with_range (-360., 360., 0.1);
   gtk_spin_button_set_value (dlg->spin_diameter, s->vertical_angle);
-  dlg->label_horizontal_angle = (GtkLabel *) gtk_label_new ("horizontal_angle");
+  dlg->label_horizontal_angle
+    = (GtkLabel *) gtk_label_new (gettext ("Horizontal angle"));
   dlg->spin_horizontal_angle = (GtkSpinButton *)
     gtk_spin_button_new_with_range (-360., 360., 0.1);
   gtk_spin_button_set_value (dlg->spin_diameter, s->horizontal_angle);
-  dlg->label_jet_length = (GtkLabel *) gtk_label_new ("jet_length");
-  dlg->spin_jet_length = (GtkSpinButton *)
+  dlg->label_jet_time = (GtkLabel *) gtk_label_new (gettext ("Jet time"));
+  dlg->spin_jet_time = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0., 10., 0.001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->jet_length);
-  dlg->label_diameter = (GtkLabel *) gtk_label_new ("Diámetro de la boquilla");
+  dlg->label_diameter
+    = (GtkLabel *) gtk_label_new (gettext ("Nozzle diameter"));
   dlg->spin_diameter = (GtkSpinButton *)
     gtk_spin_button_new_with_range (0.0001, 0.0070, 0.0001);
   gtk_spin_button_set_value (dlg->spin_diameter, s->diameter);
@@ -327,7 +330,7 @@ dialog_sprinkler_new (Sprinkler * s)
   gtk_grid_attach (dlg->grid, (GtkWidget *) dlg->spin_diameter, 1, 7, 1, 1);
 
   dlg->window =
-    (GtkDialog *) gtk_dialog_new_with_buttons ("Datos del aspersor",
+    (GtkDialog *) gtk_dialog_new_with_buttons (gettext ("Sprinkler data"),
                                                window_parent, GTK_DIALOG_MODAL,
                                                GTK_STOCK_OK, GTK_RESPONSE_OK,
                                                GTK_STOCK_CANCEL,
@@ -345,7 +348,7 @@ dialog_sprinkler_new (Sprinkler * s)
       s->vertical_angle = gtk_spin_button_get_value (dlg->spin_vertical_angle);
       s->horizontal_angle
         = gtk_spin_button_get_value (dlg->spin_horizontal_angle);
-      s->jet_length = gtk_spin_button_get_value (dlg->spin_jet_length);
+      s->jet_time = gtk_spin_button_get_value (dlg->spin_jet_time);
       s->diameter = gtk_spin_button_get_value (dlg->spin_diameter);
     }
   gtk_widget_destroy ((GtkWidget *) dlg->window);

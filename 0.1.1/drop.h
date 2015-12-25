@@ -38,19 +38,31 @@ OF SUCH DAMAGE.
 #define DROP__H 1
 
 /**
+ * \enum DropJetModel
+ * \brief enum to define the drop jet models.
+ */
+enum DropJetModel
+{
+  DROP_JET_MODEL_TOTAL = 0,     ///< total time into the jet.
+  DROP_JET_MODEL_RANDOM = 1     ///< random time into the jet.
+};
+
+/**
  * \struct Drop
  * \brief struct to define a drop.
  */
 typedef struct
 {
+  double r[3];                  ///< position.
+  double v[3];                  ///< velocity.
+  double a[3];                  ///< acceleration.
   double diameter;              ///< diameter.
   double density;               ///< density.
   double surface_tension;       ///< surface tension.
   double axis_ratio;            ///< axis ratio.
   double drag;                  ///< drag resistance factor.
-  double r[3];                  ///< position.
-  double v[3];                  ///< velocity.
-  double a[3];                  ///< acceleration.
+  double jet_time;              ///< time into the jet.
+  unsigned int jet_model;       ///< jet model type.
 } Drop;
 
 extern double drop_diameter;
@@ -73,7 +85,7 @@ double drop_axis_ratio_Burguete (Drop * d, Air * a, double v);
 double drop_drag_constant (Drop * d, Air * a, double v);
 double drop_drag_sphere (Drop * d, Air * a, double v);
 double drop_drag_ovoid (Drop * d, Air * a, double v);
-double drop_move (Drop * d, Air * a);
+double drop_move (Drop * d, Air * a, double factor);
 
 #if HAVE_GTK
 

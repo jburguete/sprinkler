@@ -52,6 +52,49 @@ OF SUCH DAMAGE.
 
 #define DEBUG_TRAJECTORY 0      ///< macro to debug trajectory functions.
 
+void (*trajectory_jet) (Trajectory * t, Air * a);
+  ///< pointer to the function to calculate the movement into the jet.
+
+/**
+ * \fn void trajectory_init (Trajectory * t, gsl_rng * rng)
+ * \brief function to init trajectory variables.
+ * \param t
+ * \brief Trajectory struct.
+ * \param rng
+ * \brief GSL pseudo-random numbers generator struct.
+ */
+void
+trajectory_init (Trajectory * t, gsl_rng * rng)
+{
+  Drop *d;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_init: start\n");
+#endif
+  switch (t->jet_model)
+    {
+    case TRAJECTORY_JET_MODEL_NULL_DRAG:
+      trajectory_jet = trajectory_jet_null_drag;
+      break;
+    case TRAJECTORY_JET_MODEL_PROGRESSIVE:
+      trajectory_jet = trajectory_jet_progressive;
+      break;
+    default:
+      trajectory_jet = trajectory_jet_big_drops;
+    }
+  d = t->drop;
+  switch (d->jet_model)
+    {
+    case DROP_JET_MODEL_TOTAL:
+      d->jet_time = t->jet_time;
+      break;
+	default:
+	  d->jet_time = gsl_rng_uniform (rng) * t->jet_time;
+    }
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_init: end\n");
+#endif
+}
+
 /**
  * \fn void trajectory_error (char *message)
  * \brief function to show an error message opening a Trajectory struct.
@@ -62,36 +105,40 @@ void
 trajectory_error (char *message)
 {
   error_message
-	= g_strconcat (gettext ("Trajectory file"), ": ", message, NULL);
+    = g_strconcat (gettext ("Trajectory file"), ": ", message, NULL);
 }
 
 /**
- * \fn int trajectory_open_file (Trajectory * t, Air *a, FILE * file)
+ * \fn int trajectory_open_file (Trajectory * t, Air *a, FILE * file, \
+ *   char *name)
  * \brief function to open a Trajectory struct in a file.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
  * \param file
- * \brief file.
+ * \brief input file.
+ * \param name
+ * \brief results base file name.
  * \return 1 on success, 0 on error.
  */
 int
-trajectory_open_file (Trajectory * t, Air * a, FILE * file)
+trajectory_open_file (Trajectory * t, Air * a, FILE * file, char *name)
 {
-  char buffer[512];
+  char buffer[512], buffer2[512];
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_open_file: start\n");
 #endif
   if (!drop_open_file (t->drop, a, file))
     goto exit_on_error;
-  if (fscanf (file, "%lf%lf%lf%s", &(t->bed_level), &(t->dt), &(t->cfl), buffer)
-      != 4)
+  if (fscanf (file, "%lf%lf%lf%u%512s", &(t->bed_level), &(t->dt), &(t->cfl),
+              &(t->jet_model), buffer) != 5)
     {
       trajectory_error (gettext ("unable to open the data"));
       goto exit_on_error;
     }
-  t->file = fopen (buffer, "w");
+  snprintf (buffer2, 512, "%s-%s", name, buffer);
+  t->file = fopen (buffer2, "w");
   if (!t->file)
     {
       trajectory_error (gettext ("unable to open the results file"));
@@ -110,17 +157,19 @@ exit_on_error:
 }
 
 /**
- * \fn void trajectory_open_console (Trajectory * t)
+ * \fn void trajectory_open_console (Trajectory * t, Air * a, char *name)
  * \brief function to input a Trajectory struct.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
+ * \param name
+ * \brief results base file name.
  */
 void
-trajectory_open_console (Trajectory * t, Air * a)
+trajectory_open_console (Trajectory * t, Air * a, char *name)
 {
-  char buffer[512];
+  char buffer[512], buffer2[512];
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_open_console: start\n");
 #endif
@@ -131,16 +180,20 @@ trajectory_open_console (Trajectory * t, Air * a)
   scanf ("%lf", &(t->dt));
   printf ("CFL number: ");
   scanf ("%lf", &(t->cfl));
+  printf ("Jet model (0: null drag, 1: progressive, 2: big drops): ");
+  scanf ("%u", &(t->jet_model));
   printf ("Results file name: ");
   scanf ("%512s", buffer);
-  t->file = fopen (buffer, "w");
+  snprintf (buffer2, 512, "%s-%s", name, buffer);
+  t->file = fopen (buffer2, "w");
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_open_console: end\n");
 #endif
 }
 
 /**
- * \fn int trajectory_open_xml (Trajectory *t, Air *a, xmlNode *node)
+ * \fn int trajectory_open_xml (Trajectory *t, Air *a, xmlNode *node, \
+ *   char *name)
  * \brief function to open a Trajectory struct on a XML node.
  * \param t
  * \brief Trajectory struct.
@@ -148,13 +201,16 @@ trajectory_open_console (Trajectory * t, Air * a)
  * \brief Air struct.
  * \param node
  * \brief XML node.
+ * \param name
+ * \brief results base file name.
  * \return 1 on success, 0 on error.
  */
 int
-trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
+trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name)
 {
-  int k;
+  char buffer2[512];
   xmlChar *buffer;
+  int k;
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_open_xml: start\n");
 #endif
@@ -164,10 +220,10 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
       goto exit_on_error;
     }
   if (!node->children)
-	{
+    {
       trajectory_error (gettext ("no drop"));
-	  goto exit_on_error;
-	}
+      goto exit_on_error;
+    }
   if (!drop_open_xml (t->drop, a, node->children))
     goto exit_on_error;
   t->bed_level = xml_node_get_float_with_default (node, XML_BED_LEVEL, 0., &k);
@@ -188,12 +244,30 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
       trajectory_error (gettext ("bad CFL number"));
       goto exit_on_error;
     }
-  t->jet_length
-    = xml_node_get_float_with_default (node, XML_JET_LENGTH, 0., &k);
+  t->jet_time = xml_node_get_float_with_default (node, XML_JET_TIME, 0., &k);
   if (!k)
     {
-      trajectory_error (gettext ("bad jet length"));
+      trajectory_error (gettext ("bad jet time"));
       goto exit_on_error;
+    }
+  if (!xmlHasProp (node, XML_JET_MODEL))
+    t->jet_model = 0;
+  else
+    {
+      buffer = xmlGetProp (node, XML_JET_MODEL);
+      if (!xmlStrcmp (buffer, XML_NULL_DRAG))
+        t->jet_model = TRAJECTORY_JET_MODEL_NULL_DRAG;
+      else if (!xmlStrcmp (buffer, XML_PROGRESSIVE))
+        t->jet_model = TRAJECTORY_JET_MODEL_PROGRESSIVE;
+      else if (!xmlStrcmp (buffer, XML_BIG_DROPS))
+        t->jet_model = TRAJECTORY_JET_MODEL_BIG_DROPS;
+      else
+        {
+          trajectory_error (gettext ("unknown jet model"));
+          xmlFree (buffer);
+          goto exit_on_error;
+        }
+      xmlFree (buffer);
     }
   buffer = xmlGetProp (node, XML_FILE);
   if (!buffer)
@@ -201,8 +275,9 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node)
       trajectory_error (gettext ("bad results file"));
       goto exit_on_error;
     }
-  t->file = fopen ((char *) buffer, "w");
+  snprintf (buffer2, 512, "%s-%s", name, (char *) buffer);
   xmlFree (buffer);
+  t->file = fopen (buffer2, "w");
   if (!t->file)
     {
       trajectory_error (gettext ("unable to open the results file"));
@@ -221,53 +296,18 @@ exit_on_error:
 }
 
 /**
- * \fn void trajectory_jet (Trajectory * t)
- * \brief function to calculate the trajectory of the jet assuming negligible
- *   drag resistance.
- * \param t
- * \brief Trajectory struct.
- */
-void
-trajectory_jet (Trajectory * t)
-{
-  Drop *d;
-#if DEBUG_TRAJECTORY
-  fprintf (stderr, "trajectory_jet: start\n");
-#endif
-  d = t->drop;
-#if DEBUG_TRAJECTORY
-  fprintf (stderr, "trajectory_jet: t=%lg\n", t->t);
-  fprintf (stderr, "trajectory_jet: r=(%lg,%lg,%lg)\n",
-           d->r[0], d->r[1], d->r[2]);
-  fprintf (stderr, "trajectory_jet: v=(%lg,%lg,%lg)\n",
-           d->v[0], d->v[1], d->v[2]);
-#endif
-  t->t = t->jet_length / sqrt (d->v[0] * d->v[0] + d->v[1] * d->v[1]);
-  d->r[0] += t->t * d->v[0];
-  d->r[1] += t->t * d->v[1];
-  d->r[2] += t->t * (d->v[2] - 0.5 * G * t->t);
-  d->v[2] -= G * t->t;
-#if DEBUG_TRAJECTORY
-  fprintf (stderr, "trajectory_jet: t=%lg\n", t->t);
-  fprintf (stderr, "trajectory_jet: r=(%lg,%lg,%lg)\n",
-           d->r[0], d->r[1], d->r[2]);
-  fprintf (stderr, "trajectory_jet: v=(%lg,%lg,%lg)\n",
-           d->v[0], d->v[1], d->v[2]);
-  fprintf (stderr, "trajectory_jet: end\n");
-#endif
-}
-
-/**
- * \fn void trajectory_runge_kutta_4 (Trajectory * t, Air * a)
+ * \fn void trajectory_runge_kutta_4 (Trajectory * t, Air * a, double factor)
  * \brief function implementing a 4th order Runge-Kutta method to calculate a
  *   drop trajectory.
  * \param t
  * \brief Trajectory struct.
  * \param a
  * \brief Air struct.
+ * \param factor
+ * \brief drag resistance factor.
  */
 void
-trajectory_runge_kutta_4 (Trajectory * t, Air * a)
+trajectory_runge_kutta_4 (Trajectory * t, Air * a, double factor)
 {
   Drop d2[1], d3[1], d4[1], *d;
   double dt2, dt6;
@@ -292,21 +332,21 @@ trajectory_runge_kutta_4 (Trajectory * t, Air * a)
   d2->v[0] = d->v[0] + dt2 * d->a[0];
   d2->v[1] = d->v[1] + dt2 * d->a[1];
   d2->v[2] = d->v[2] + dt2 * d->a[2];
-  drop_move (d2, a);
+  drop_move (d2, a, factor);
   d3->r[0] = d->r[0] + dt2 * d2->v[0];
   d3->r[1] = d->r[1] + dt2 * d2->v[1];
   d3->r[2] = d->r[2] + dt2 * d2->v[2];
   d3->v[0] = d->v[0] + dt2 * d2->a[0];
   d3->v[1] = d->v[1] + dt2 * d2->a[1];
   d3->v[2] = d->v[2] + dt2 * d2->a[2];
-  drop_move (d3, a);
+  drop_move (d3, a, factor);
   d4->r[0] = d->r[0] + t->dt * d3->v[0];
   d4->r[1] = d->r[1] + t->dt * d3->v[1];
   d4->r[2] = d->r[2] + t->dt * d3->v[2];
   d4->v[0] = d->v[0] + t->dt * d3->a[0];
   d4->v[1] = d->v[1] + t->dt * d3->a[1];
   d4->v[2] = d->v[2] + t->dt * d3->a[2];
-  drop_move (d4, a);
+  drop_move (d4, a, factor);
   dt6 = 1. / 6. * t->dt;
   d->r[0] += dt6 * (d->v[0] + d4->v[0] + 2.0 * (d2->v[0] + d3->v[0]));
   d->r[1] += dt6 * (d->v[1] + d4->v[1] + 2.0 * (d2->v[1] + d3->v[1]));
@@ -322,6 +362,126 @@ trajectory_runge_kutta_4 (Trajectory * t, Air * a)
   fprintf (stderr, "trajectory_runge_kutta_4: v=(%lg,%lg,%lg)\n",
            d->v[0], d->v[1], d->v[2]);
   fprintf (stderr, "trajectory_runge_kutta_4: end\n");
+#endif
+}
+
+/**
+ * \fn void trajectory_jet_null_drag (Trajectory * t, Air * a)
+ * \brief function to calculate the trajectory of the jet assuming negligible
+ *   drag resistance.
+ * \param t
+ * \brief Trajectory struct.
+ * \param a
+ * \brief Air struct.
+ */
+void
+trajectory_jet_null_drag (Trajectory * t, Air * a)
+{
+  Drop *d;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_null_drag: start\n");
+#endif
+  d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_null_drag: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_null_drag: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_null_drag: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
+  t->t = d->jet_time;
+  d->r[0] += t->t * d->v[0];
+  d->r[1] += t->t * d->v[1];
+  d->r[2] += t->t * (d->v[2] - 0.5 * G * t->t);
+  d->v[2] -= G * t->t;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_null_drag: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_null_drag: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_null_drag: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_jet_null_drag: end\n");
+#endif
+}
+
+/**
+ * \fn void trajectory_jet_progressive (Trajectory * t, Air * a)
+ * \brief function to calculate the trajectory of the jet assuming negligible
+ *   drag resistance.
+ * \param t
+ * \brief Trajectory struct.
+ * \param a
+ * \brief Air struct.
+ */
+void
+trajectory_jet_progressive (Trajectory * t, Air * a)
+{
+  Drop *d;
+  double dt, factor;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_progressive: start\n");
+#endif
+  d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_progressive: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_progressive: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_progressive: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
+  for (dt = t->dt; t->t < d->jet_time; t->t += t->dt)
+    {
+      trajectory_write (t);
+      factor = 0.1 + 0.9 * t->t / t->jet_time;
+      t->dt = fmin (dt, t->cfl / drop_move (d, a, factor));
+      trajectory_runge_kutta_4 (t, a, factor);
+    }
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_progressive: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_progressive: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_progressive: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_jet_progressive: end\n");
+#endif
+}
+
+/**
+ * \fn void trajectory_jet_big_drops (Trajectory * t, Air * a)
+ * \brief function to calculate the trajectory of the jet assuming negligible
+ *   drag resistance.
+ * \param t
+ * \brief Trajectory struct.
+ * \param a
+ * \brief Air struct.
+ */
+void
+trajectory_jet_big_drops (Trajectory * t, Air * a)
+{
+  Drop *d;
+  double diameter;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_big_drops: start\n");
+#endif
+  d = t->drop;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_big_drops: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_big_drops: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_big_drops: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+#endif
+  diameter = d->diameter;
+  d->diameter = MAXIMUM_DROP_DIAMETER;
+  trajectory_jet_progressive (t, a);
+  d->diameter = diameter;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_jet_big_drops: t=%lg\n", t->t);
+  fprintf (stderr, "trajectory_jet_big_drops: r=(%lg,%lg,%lg)\n",
+           d->r[0], d->r[1], d->r[2]);
+  fprintf (stderr, "trajectory_jet_big_drops: v=(%lg,%lg,%lg)\n",
+           d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_jet_big_drops: end\n");
 #endif
 }
 
@@ -349,7 +509,7 @@ trajectory_impact_correction (Trajectory * t, Air * a)
   fprintf (stderr, "trajectory_impact_correction: v=(%lg,%lg,%lg)\n",
            d->v[0], d->v[1], d->v[2]);
 #endif
-  drop_move (d, a);
+  drop_move (d, a, 1.);
   h = t->bed_level - d->r[2];
   dt = (-sqrt (d->v[2] * d->v[2] - 2. * h * d->a[2]) - d->v[2]) / d->a[2];
   d->r[0] -= dt * (d->v[0] - 0.5 * dt * d->a[0]);
@@ -393,7 +553,7 @@ trajectory_initial_correction (Trajectory * t, Air * a)
   fprintf (stderr, "trajectory_initial_correction: v=(%lg,%lg,%lg)\n",
            d->v[0], d->v[1], d->v[2]);
 #endif
-  drop_move (d, a);
+  drop_move (d, a, 1.);
   dt = (-sqrt (d->v[0] * d->v[0] + 2. * d->r[0] * d->a[2]) - d->v[0]) / d->a[0];
   d->r[0] -= dt * (d->v[0] - 0.5 * dt * d->a[0]);
   d->r[1] -= dt * (d->v[1] - 0.5 * dt * d->a[1]);
@@ -452,13 +612,13 @@ trajectory_calculate (Trajectory * t, Air * a)
 #endif
   t->t = 0.;
   trajectory_write (t);
-  trajectory_jet (t);
+  trajectory_jet (t, a);
   drop = t->drop;
   for (dt = t->dt; drop->r[2] > t->bed_level || drop->v[2] > 0.;)
     {
       trajectory_write (t);
-      t->dt = fmin (dt, t->cfl / drop_move (drop, a));
-      trajectory_runge_kutta_4 (t, a);
+      t->dt = fmin (dt, t->cfl / drop_move (drop, a, 1.));
+      trajectory_runge_kutta_4 (t, a, 1.);
     }
   trajectory_impact_correction (t, a);
   trajectory_write (t);
@@ -488,8 +648,8 @@ trajectory_invert (Trajectory * t, Air * a)
   for (dt = t->dt; drop->r[2] > t->bed_level && drop->r[0] > 0.;)
     {
       trajectory_write (t);
-      t->dt = -fmin (dt, t->cfl / drop_move (drop, a));
-      trajectory_runge_kutta_4 (t, a);
+      t->dt = -fmin (dt, t->cfl / drop_move (drop, a, 1.));
+      trajectory_runge_kutta_4 (t, a, 1.);
     }
   if (drop->r[2] < t->bed_level)
     trajectory_impact_correction (t, a);

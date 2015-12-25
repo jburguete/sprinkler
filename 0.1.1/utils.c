@@ -42,18 +42,19 @@ OF SUCH DAMAGE.
 #endif
 #include "utils.h"
 
-char *error_message = NULL; ///< error message.
+char *error_message = NULL;     ///< error message.
 
 #if HAVE_GTK
 
-GtkWindow *window_parent; ///< parent window.
+GtkWindow *window_parent;       ///< parent window.
 
-void show_error ()
+void
+show_error ()
 {
   GtkMessageDialog *dlg;
   dlg = (GtkMessageDialog *)
-	gtk_message_dialog_new (window_parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
-			                GTK_BUTTONS_CLOSE, error_message);
+    gtk_message_dialog_new (window_parent, GTK_DIALOG_MODAL, GTK_MESSAGE_ERROR,
+                            GTK_BUTTONS_CLOSE, error_message);
   gtk_dialog_run (GTK_DIALOG (dlg));
   gtk_widget_destory (GTK_WIDGET (dlg));
   g_free (error_message);
@@ -62,7 +63,8 @@ void show_error ()
 
 #else
 
-void show_error ()
+void
+show_error ()
 {
   puts (error_message);
 }

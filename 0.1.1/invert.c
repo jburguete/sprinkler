@@ -41,7 +41,8 @@ drop_print_parabolic (Drop * d)
 }
 
 int
-open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
+open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet,
+		  char *result)
 {
   Drop *drop;
   xmlDoc *doc;
@@ -51,16 +52,16 @@ open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
   gsl_rng_set (rng, RANDOM_SEED);
   doc = xmlParseFile (name);
   if (!doc)
-	{
-	  error_message
-		= g_strconcat (gettext ("Unable to parse the input file"), NULL);
-	  goto exit_on_error;
-	}
+    {
+      error_message
+        = g_strconcat (gettext ("Unable to parse the input file"), NULL);
+      goto exit_on_error;
+    }
   node = xmlDocGetRootElement (doc);
   if (!node || xmlStrcmp (node->name, XML_INVERT) || !node->children)
-	{
-	  error_message = g_strconcat (gettext ("Bad input file"), NULL);
-	  goto exit_on_error;
+    {
+      error_message = g_strconcat (gettext ("Bad input file"), NULL);
+      goto exit_on_error;
     }
   node = node->children;
   if (!air_open_xml (air, node))
@@ -71,9 +72,9 @@ open_xml (char *name, Air * air, Trajectory * trajectory, Jet * jet)
   drop = trajectory->drop;
   for (node = node->next; node; node = node->next)
     {
-      if (!trajectory_open_xml (trajectory, air, node))
+      if (!trajectory_open_xml (trajectory, air, node, result))
         goto exit_on_error;
-	  air_wind_uncertainty (air, rng);
+      air_wind_uncertainty (air, rng);
       drop_print_parabolic (drop);
       trajectory_invert_with_jet (trajectory, air, jet);
       drop_print_ballistic (drop);
@@ -94,12 +95,12 @@ main (int argn, char **argc)
   Trajectory trajectory[1];
   Jet jet[1];
   xmlKeepBlanksDefault (0);
-  if (argn > 2)
+  if (argn > 3)
     {
-      printf ("Usage of this program is:\n\tinvert file_data\n");
+      printf ("Usage of this program is:\n\tinvert file_data results_name\n");
       return 1;
     }
-  if (!open_xml (argc[1], air, trajectory, jet))
+  if (!open_xml (argc[1], air, trajectory, jet, argc[2]))
     return 3;
   if (file)
     fclose (file);

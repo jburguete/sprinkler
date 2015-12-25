@@ -51,7 +51,7 @@ OF SUCH DAMAGE.
 
 /**
  * \fn int open(char *name, Sprinkler * sprinkler, Air * air, Drop * drop, \
- *   Trajectory * trajectory)
+ *   Trajectory * trajectory, char *result)
  * \brief function to open all data in a file.
  * \param name
  * \brief file name.
@@ -61,10 +61,13 @@ OF SUCH DAMAGE.
  * \brief Air struct.
  * \param trajectory.
  * \brief Trajectory struct.
+ * \param result
+ * \brief result file name.
  * \return 1 on success, 0 on error.
  */
 int
-open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
+open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory,
+	  char *result)
 {
   FILE *file;
   file = fopen (name, "r");
@@ -72,7 +75,7 @@ open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
     return 0;
   if (!sprinkler_open_file (sprinkler, file)
       || !air_open_file (air, file)
-      || !trajectory_open_file (trajectory, air, file))
+      || !trajectory_open_file (trajectory, air, file, result))
     {
       fclose (file);
       return 0;
@@ -83,7 +86,8 @@ open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
 }
 
 /**
- * \fn void init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
+ * \fn void init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory, \
+ *   char *result)
  * \brief function to input all data.
  * \param sprinkler
  * \brief sprinkler struct.
@@ -91,20 +95,22 @@ open (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
  * \brief Air struct.
  * \param trajectory.
  * \brief Trajectory struct.
+ * \param result
+ * \brief result file name.
  */
 void
-init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
+init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory, char *result)
 {
   sprinkler_open_console (sprinkler);
   air_open_console (air);
   drop_open_console (trajectory->drop, air);
-  trajectory_open_console (trajectory, air);
+  trajectory_open_console (trajectory, air, result);
   trajectory_init_with_sprinkler (trajectory, sprinkler);
 }
 
 /**
  * \fn int open_xml(char *name, Sprinkler * sprinkler, Air * air, Drop * drop, \
- *   Trajectory * trajectory)
+ *   Trajectory * trajectory, char *result)
  * \brief function to open all data in a file.
  * \param name
  * \brief file name.
@@ -114,10 +120,13 @@ init (Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
  * \brief Air struct.
  * \param trajectory.
  * \brief Trajectory struct.
+ * \param result
+ * \brief result file name.
  * \return 1 on success, 0 on error.
  */
 int
-open_xml (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
+open_xml (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory,
+		  char *result)
 {
   xmlDoc *doc;
   xmlNode *node;
@@ -126,29 +135,35 @@ open_xml (char *name, Sprinkler * sprinkler, Air * air, Trajectory * trajectory)
   gsl_rng_set (rng, RANDOM_SEED);
   doc = xmlParseFile (name);
   if (!doc)
-	{
-	  error_message
-		= g_strconcat (gettext ("Unable to parse the input file"), NULL);
-	  goto exit_on_error;
-	}
+    {
+      error_message
+        = g_strconcat (gettext ("Unable to parse the input file"), NULL);
+      goto exit_on_error;
+    }
   node = xmlDocGetRootElement (doc);
   if (!node || !node->children)
-	{
-	  error_message = g_strconcat (gettext ("Bad input file"), NULL);
-	  goto exit_on_error;
+    {
+      error_message = g_strconcat (gettext ("Bad input file"), NULL);
+      goto exit_on_error;
     }
   if (!sprinkler_open_xml (sprinkler, node))
-	goto exit_on_error;
+    goto exit_on_error;
   node = node->children;
   if (!air_open_xml (air, node))
     goto exit_on_error;
-  node = node->next;
-  if (!trajectory_open_xml (trajectory, air, node))
-    goto exit_on_error;
-  trajectory_init_with_sprinkler (trajectory, sprinkler);
+  for (node = node->next; node; node = node->next)
+    {
+      if (!trajectory_open_xml (trajectory, air, node, result))
+        goto exit_on_error;
+      trajectory_init_with_sprinkler (trajectory, sprinkler);
+	  trajectory_init (trajectory, rng);
+      air_wind_uncertainty (air, rng);
+      trajectory_calculate (trajectory, air);
+    }
   return 1;
 
 exit_on_error:
+  gsl_rng_free (rng);
   show_error ();
   return 0;
 }
@@ -168,24 +183,19 @@ main (int argn, char **argc)
   Sprinkler sprinkler[1];
   Air air[1];
   Trajectory trajectory[1];
-  gsl_rng *rng;
   xmlKeepBlanksDefault (0);
-  if (argn == 1)
-    init (sprinkler, air, trajectory);
-  else if (argn == 2)
-	{
-      if (!open_xml (argc[1], sprinkler, air, trajectory))
+  if (argn == 2)
+    init (sprinkler, air, trajectory, argc[1]);
+  else if (argn == 3)
+    {
+      if (!open_xml (argc[1], sprinkler, air, trajectory, argc[2]))
         return 2;
-	}
+    }
   else
     {
-      printf ("Usage of this program is:\n\tsprinkler [file_data]\n");
+      printf ("Usage of this program is:\n"
+			  "\tsprinkler [file_data] results_name\n");
       return 1;
     }
-  rng = gsl_rng_alloc (gsl_rng_taus);
-  gsl_rng_set (rng, RANDOM_SEED);
-  air_wind_uncertainty (air, rng);
-  trajectory_calculate (trajectory, air);
-  gsl_rng_free (rng);
   return 0;
 }

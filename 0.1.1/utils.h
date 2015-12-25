@@ -42,7 +42,7 @@ extern char *error_message;
 extern GtkWindow *window_parent;
 #endif
 
-void show_error();
+void show_error ();
 double vector_module (double x, double y, double z);
 double xml_node_get_float (xmlNode * node, const xmlChar * prop,
                            int *error_code);
