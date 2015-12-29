@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<sprinkler pressure="200000" vertical_angle="25" diameter="0.04" jet_time="0.285970">
-	<air/>
-	<trajectory dt="0.001" cfl="0.1" file="vyr-8.0-b" jet_model="progressive">
-		<drop diameter="0.00734656" drag_model="ovoid"/>
-	</trajectory>
-</sprinkler>

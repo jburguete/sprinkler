@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<sprinkler pressure="200000" vertical_angle="25" diameter="0.04" jet_time="0">
+	<air/>
+	<trajectory dt="0.001" cfl="0.1" file="drop-6-0.5-d" jet_model="null_drag">
+		<drop diameter="0.006" drag_model="constant" drag="0.5"/>
+	</trajectory>
+	<trajectory dt="0.001" cfl="0.1" file="drop-6-0.45-d" jet_model="null_drag">
+		<drop diameter="0.006" drag_model="constant" drag="0.45"/>
+	</trajectory>
+	<trajectory dt="0.001" cfl="0.1" file="drop-6-0.55-d" jet_model="null_drag">
+		<drop diameter="0.006" drag_model="constant" drag="0.55"/>
+	</trajectory>
+	<trajectory dt="0.001" cfl="0.1" file="drop-3-0.5-d" jet_model="null_drag">
+		<drop diameter="0.003" drag_model="constant" drag="0.5"/>
+	</trajectory>
+	<trajectory dt="0.001" cfl="0.1" file="drop-3-0.45-d" jet_model="null_drag">
+		<drop diameter="0.003" drag_model="constant" drag="0.45"/>
+	</trajectory>
+	<trajectory dt="0.001" cfl="0.1" file="drop-3-0.55-d" jet_model="null_drag">
+		<drop diameter="0.003" drag_model="constant" drag="0.55"/>
+	</trajectory>
+</sprinkler>

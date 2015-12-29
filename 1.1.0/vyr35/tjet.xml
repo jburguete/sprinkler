@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<calibrate simulator="../sprinkler" evaluator="../evaluator" algorithm="genetic"
+	npopulation="50" ngenerations="6" mutation="0.2" reproduction="0.2"
+	adaptation="0.2">
+	<experiment name="trayectoriapiluca2011.csv" template1="tjet.tmp"/>
+	<variable name="jet_time" minimum="0.00000" maximum="2.00000" precision="5"
+		nbits="15"/>
+	<variable name="diameter" minimum="0.00500" maximum="0.01000" precision="5"
+		nbits="9"/>
+</calibrate>
+

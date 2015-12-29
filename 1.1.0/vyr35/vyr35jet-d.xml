@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<sprinkler pressure="200000" vertical_angle="25" diameter="0.04" jet_time="0.536">
+	<air/>
+	<trajectory dt="0.001" cfl="0.1" file="6-0.536-pi" jet_model="progressive">
+		<drop diameter="0.006" drag_model="ovoid"/>
+	</trajectory>
+</sprinkler>

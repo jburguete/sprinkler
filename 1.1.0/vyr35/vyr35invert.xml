@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<invert>
+	<air/>
+	<jet a1="1000"/>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-6-0.5-i">
+		<drop diameter="0.006" velocity="8.44" vertical_angle="-42.53" x="13.58" drag_model="constant" drag="0.5"/>
+	</trajectory>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-6-0.45-i">
+		<drop diameter="0.006" velocity="8.44" vertical_angle="-42.53" x="13.58" drag_model="constant" drag="0.45"/>
+	</trajectory>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-6-0.55-i">
+		<drop diameter="0.006" velocity="8.44" vertical_angle="-42.53" x="13.58" drag_model="constant" drag="0.55"/>
+	</trajectory>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-3-0.5-i">
+		<drop diameter="0.003" velocity="6.29" vertical_angle="-49.28" x="9.27" drag_model="constant" drag="0.5"/>
+	</trajectory>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-3-0.45-i">
+		<drop diameter="0.003" velocity="6.29" vertical_angle="-49.28" x="9.27" drag_model="constant" drag="0.45"/>
+	</trajectory>
+	<trajectory bed_level="-1.5" dt="0.001" cfl="0.1" file="drop-3-0.55-i">
+		<drop diameter="0.003" velocity="6.29" vertical_angle="-49.28" x="9.27" drag_model="constant" drag="0.55"/>
+	</trajectory>
+</invert>
