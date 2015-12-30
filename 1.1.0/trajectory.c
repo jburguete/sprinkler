@@ -429,7 +429,8 @@ trajectory_jet_progressive (Trajectory * t, Air * a)
 #endif
   for (dt = t->dt; t->t < d->jet_time; t->t += t->dt)
     {
-      trajectory_write (t);
+      if (t->file)
+		trajectory_write (t);
       factor = 0.1 + 0.9 * t->t / t->jet_time;
       t->dt = fmin (dt, t->cfl / drop_move (d, a, factor));
       trajectory_runge_kutta_4 (t, a, factor);
@@ -620,7 +621,8 @@ trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n,
   fprintf (stderr, "trajectory_calculate: nmeasurements=%u\n", n);
 #endif
   t->t = 0.;
-  if (t->file) trajectory_write (t);
+  if (t->file)
+	trajectory_write (t);
   trajectory_jet (t, a);
   d = t->drop;
   for (dt = t->dt; d->r[2] > t->bed_level || d->v[2] > 0.;)
