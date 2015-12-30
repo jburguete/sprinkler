@@ -110,7 +110,8 @@ vector_module (double x, double y, double z)
 }
 
 /**
- * \fn double xml_node_get_float (xmlNode * node, const xmlChar * prop, int *error_code)
+ * \fn double xml_node_get_float (xmlNode * node, const xmlChar * prop, \
+ *   int *error_code)
  * \brief function to get a floating point number from a XML node property.
  * \param node
  * \brief XML node.
@@ -141,9 +142,10 @@ xml_node_get_float (xmlNode * node, const xmlChar * prop, int *error_code)
 }
 
 /**
- * \fn double xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop, \
- *   double default_value, int *error_code)
- * \brief function to get a floating point number from a XML node property with a default value.
+ * \fn double xml_node_get_float_with_default (xmlNode * node, \
+ *   const xmlChar * prop, double default_value, int *error_code)
+ * \brief function to get a floating point number from a XML node property with
+ *   a default value.
  * \param node
  * \brief XML node.
  * \param prop
@@ -165,6 +167,39 @@ xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop,
     return default_value;
   buffer = xmlGetProp (node, prop);
   if (!buffer || sscanf ((char *) buffer, "%lf", &x) != 1)
+    {
+      *error_code = 0;
+      return 0;
+    }
+  return x;
+}
+
+/**
+ * \fn unsigned int xml_node_get_uint_with_default (xmlNode * node, \
+ *   const xmlChar * prop, unsigned int default_value, int *error_code)
+ * \brief function to get an unsigned integer number from a XML node property
+ *   with a default value.
+ * \param node
+ * \brief XML node.
+ * \param prop
+ * \brief XML property.
+ * \param default_value
+ * \brief default value.
+ * \param error_code
+ * \brief error code.
+ * \return unsigned integer number.
+ */
+unsigned int
+xml_node_get_uint_with_default (xmlNode * node, const xmlChar * prop,
+                                 unsigned int default_value, int *error_code)
+{
+  const xmlChar *buffer;
+  unsigned int x;
+  *error_code = 1;
+  if (!xmlHasProp (node, prop))
+    return default_value;
+  buffer = xmlGetProp (node, prop);
+  if (!buffer || sscanf ((char *) buffer, "%u", &x) != 1)
     {
       *error_code = 0;
       return 0;

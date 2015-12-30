@@ -108,3 +108,17 @@ plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
 	'Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
+set out 'vxz-nd-6-0.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
+	'vyr35-null-drag-6-0-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
+	'vyr35-null-drag-6-0-Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
+	'vyr35-null-drag-6-0-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
+	'vyr35-null-drag-6-0-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
+	'vyr35-null-drag-6-0-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
+set out 'vxz-nd-6-0.107.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
+	'vyr35-null-drag-6-0.107-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
+	'vyr35-null-drag-6-0.107-Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
+	'vyr35-null-drag-6-0.107-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
+	'vyr35-null-drag-6-0.107-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
+	'vyr35-null-drag-6-0.107-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'

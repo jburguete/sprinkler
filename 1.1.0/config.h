@@ -47,7 +47,8 @@ OF SUCH DAMAGE.
 #define AIR_HUMIDITY 100.       ///< saturated relative humidity.
 #define AIR_PRESSURE 101325.    ///< atmospheric pressure.
 #define AIR_TEMPERATURE 20.     ///< normal atmospheric temperature in Celsius.
-#define MAXIMUM_DROP_DIAMETER 0.0055    ///< maximum diameter of stable drops.
+#define MAXIMUM_DROP_DIAMETER 0.0080    ///< maximum diameter of stable drops.
+#define MINIMUM_DROP_DIAMETER 0.0004    ///< minimum diameter of emitted drops.
 #define RANDOM_SEED 7007        ///< pseudo-random numbers generator seed.
 #define WIND_ANGLE 0.           ///< wind azimuth angle.
 #define WIND_HEIGHT 2.          ///< reference height to measure the wind.
@@ -61,93 +62,103 @@ OF SUCH DAMAGE.
 #define DRAG_SPHERE DRAG_SPHERE_FUKUI   ///< model of a sphere drag.
 
 // XML labels
-#define XML_A0               (const xmlChar*)"a0"
+#define XML_A0                    (const xmlChar*)"a0"
   ///< a0 XML label.
-#define XML_A1               (const xmlChar*)"a1"
+#define XML_A1                    (const xmlChar*)"a1"
   ///< a1 XML label.
-#define XML_A2               (const xmlChar*)"a2"
+#define XML_A2                    (const xmlChar*)"a2"
   ///< a2 XML label.
-#define XML_A3               (const xmlChar*)"a3"
+#define XML_A3                    (const xmlChar*)"a3"
   ///< a3 XML label.
-#define XML_A4               (const xmlChar*)"a4"
+#define XML_A4                    (const xmlChar*)"a4"
   ///< a4 XML label.
-#define XML_AIR              (const xmlChar*)"air"
+#define XML_AIR                   (const xmlChar*)"air"
   ///< air XML label.
-#define XML_ANGLE            (const xmlChar*)"angle"
+#define XML_ANGLE                 (const xmlChar*)"angle"
   ///< angle XML label.
-#define XML_BED_LEVEL        (const xmlChar*)"bed_level"
+#define XML_BED_LEVEL             (const xmlChar*)"bed_level"
   ///< bed_level XML label.
-#define XML_BIG_DROPS        (const xmlChar*)"big_drops"
+#define XML_BIG_DROPS             (const xmlChar*)"big_drops"
   ///< big_drops XML label.
-#define XML_CFL              (const xmlChar*)"cfl"
+#define XML_CFL                   (const xmlChar*)"cfl"
   ///< cfl XML label.
-#define XML_CONSTANT         (const xmlChar*)"constant"
+#define XML_CONSTANT              (const xmlChar*)"constant"
   ///< constant XML label.
-#define XML_DETACH_MODEL     (const xmlChar*)"detach_model"
+#define XML_DETACH_MODEL          (const xmlChar*)"detach_model"
   ///< detach_model XML label.
-#define XML_DIAMETER         (const xmlChar*)"diameter"
+#define XML_DIAMETER              (const xmlChar*)"diameter"
   ///< diameter XML label.
-#define XML_DRAG             (const xmlChar*)"drag"
+#define XML_DRAG                  (const xmlChar*)"drag"
   ///< drag XML label.
-#define XML_DRAG_MODEL       (const xmlChar*)"drag_model"
+#define XML_DRAG_MODEL            (const xmlChar*)"drag_model"
   ///< drag_model XML label.
-#define XML_DROP             (const xmlChar*)"drop"
+#define XML_DROP                  (const xmlChar*)"drop"
   ///< drop XML label.
-#define XML_DT               (const xmlChar*)"dt"
+#define XML_DROPS_NUMBER          (const xmlChar*)"drops_number"
+  ///< drops_number XML label.
+#define XML_DT                    (const xmlChar*)"dt"
   ///< dt XML label.
-#define XML_DX               (const xmlChar*)"dx"
+#define XML_DX                    (const xmlChar*)"dx"
   ///< dx XML label.
-#define XML_DY               (const xmlChar*)"dy"
+#define XML_DY                    (const xmlChar*)"dy"
   ///< dy XML label.
-#define XML_FILE             (const xmlChar*)"file"
+#define XML_FILE                  (const xmlChar*)"file"
   ///< file XML label.
-#define XML_HEIGHT           (const xmlChar*)"height"
+#define XML_HEIGHT                (const xmlChar*)"height"
   ///< height XML label.
-#define XML_HORIZONTAL_ANGLE (const xmlChar*)"horizontal_angle"
+#define XML_HORIZONTAL_ANGLE      (const xmlChar*)"horizontal_angle"
   ///< horizontal angle XML label.
-#define XML_HUMIDITY         (const xmlChar*)"humidity"
+#define XML_HUMIDITY              (const xmlChar*)"humidity"
   ///< humidity XML label.
-#define XML_INVERT           (const xmlChar*)"invert"
+#define XML_INVERT                (const xmlChar*)"invert"
   ///< invert XML label.
-#define XML_JET              (const xmlChar*)"jet"
+#define XML_JET                   (const xmlChar*)"jet"
   ///< jet XML label.
-#define XML_JET_MODEL        (const xmlChar*)"jet_model"
+#define XML_JET_MODEL             (const xmlChar*)"jet_model"
   ///< jet_model XML label.
-#define XML_JET_TIME         (const xmlChar*)"jet_time"
+#define XML_JET_TIME              (const xmlChar*)"jet_time"
   ///< jet_time XML label.
-#define XML_MEASUREMENT      (const xmlChar*)"measurement"
+#define XML_MEASUREMENT           (const xmlChar*)"measurement"
   ///< measurement XML label.
-#define XML_NULL_DRAG        (const xmlChar*)"null_drag"
+#define XML_MAXIMUM_ANGLE         (const xmlChar*)"maximum_angle"
+  ///< maximum angle XML label.
+#define XML_MAXIMUM_DROP_DIAMETER (const xmlChar*)"maximum_drop_diameter"
+  ///< maximum drop_diameter XML label.
+#define XML_MINIMUM_ANGLE         (const xmlChar*)"minimum_angle"
+  ///< minimum angle XML label.
+#define XML_MINIMUM_DROP_DIAMETER (const xmlChar*)"minimum_drop_diameter"
+  ///< minimum drop_diameter XML label.
+#define XML_NULL_DRAG             (const xmlChar*)"null_drag"
   ///< null_drag XML label.
-#define XML_OVOID            (const xmlChar*)"ovoid"
+#define XML_OVOID                 (const xmlChar*)"ovoid"
   ///< ovoid XML label.
-#define XML_PRESSURE         (const xmlChar*)"pressure"
+#define XML_PRESSURE              (const xmlChar*)"pressure"
   ///< pressure XML label.
-#define XML_PROGRESSIVE      (const xmlChar*)"progressive"
+#define XML_PROGRESSIVE           (const xmlChar*)"progressive"
   ///< progressive XML label.
-#define XML_RANDOM           (const xmlChar*)"random"
+#define XML_RANDOM                (const xmlChar*)"random"
   ///< random XML label.
-#define XML_SPHERE           (const xmlChar*)"sphere"
+#define XML_SPHERE                (const xmlChar*)"sphere"
   ///< sphere XML label.
-#define XML_SPRINKLER        (const xmlChar*)"sprinkler"
+#define XML_SPRINKLER             (const xmlChar*)"sprinkler"
   ///< sprinkler XML label.
-#define XML_TEMPERATURE      (const xmlChar*)"temperature"
+#define XML_TEMPERATURE           (const xmlChar*)"temperature"
   ///< temperature XML label.
-#define XML_TOTAL            (const xmlChar*)"total"
+#define XML_TOTAL                 (const xmlChar*)"total"
   ///< total XML label.
-#define XML_TRAJECTORY       (const xmlChar*)"trajectory"
+#define XML_TRAJECTORY            (const xmlChar*)"trajectory"
   ///< trajectory XML label.
-#define XML_UNCERTAINTY      (const xmlChar*)"uncertainty"
+#define XML_UNCERTAINTY           (const xmlChar*)"uncertainty"
   ///< uncertainty XML label.
-#define XML_VELOCITY         (const xmlChar*)"velocity"
+#define XML_VELOCITY              (const xmlChar*)"velocity"
   ///< velocity XML label.
-#define XML_VERTICAL_ANGLE   (const xmlChar*)"vertical_angle"
+#define XML_VERTICAL_ANGLE        (const xmlChar*)"vertical_angle"
   ///< horizontal angle XML label.
-#define XML_X                (const xmlChar*)"x"
+#define XML_X                     (const xmlChar*)"x"
   ///< x XML label.
-#define XML_Y                (const xmlChar*)"y"
+#define XML_Y                     (const xmlChar*)"y"
   ///< y XML label.
-#define XML_Z                (const xmlChar*)"z"
+#define XML_Z                     (const xmlChar*)"z"
   ///< z XML label.
 
 #endif

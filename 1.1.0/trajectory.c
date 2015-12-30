@@ -247,20 +247,50 @@ exit_on_error:
   return 0;
 }
 
+/**
+ * \fn void trajectory_open_data (Trajectory * t, Air * a, gsl_rng * rng, \
+ *   double diameter, double *r, double *v, unsigned int jet_model, \
+ *   unsigned int detach_model, unsigned int drag_model, \
+ *   double maximum_diameter, double drag_coefficient)
+ * \brief function to open a Trajectory struct with data.
+ * \param t
+ * \brief Trajectory struct.
+ * \param a
+ * \brief Air struct.
+ * \param rng
+ * \brief GSL pseudo-random numbers generator struct.
+ * \param diameter
+ * \brief drop diameter.
+ * \param jet_model
+ * \brief jet model type.
+ * \param detach_model
+ * \brief jet detach model type.
+ * \param drag_model
+ * \brief drop drag resistance model.
+ * \param maximum_diameter
+ * \brief maximum diameter of stable drops.
+ * \param drag_coefficient
+ * \brief drop drag resistance coefficient for the constant model.
+ */
 void
 trajectory_open_data (Trajectory * t, Air * a, gsl_rng * rng, double diameter,
-		              double *r, double *v, unsigned int jet_model,
-					  unsigned int detach_model, unsigned int drag_model)
+		              unsigned int jet_model, unsigned int detach_model,
+					  unsigned int drag_model, double maximum_diameter,
+					  double drag_coefficient)
 {
-  Drop *d;
-  d = t->drop;
-  d->diameter = diameter;
-  memcpy (d->r, r, 3 * sizeof (double));
-  memcpy (d->v, v, 3 * sizeof (double));
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_data: start\n");
+#endif
   t->jet_model = jet_model;
+  t->file = NULL;
+  drop_diameter = diameter;
   drop_detach_model = detach_model;
   drop_drag_model = drag_model;
-  drop_init (d, a, rng);
+  drop_maximum_diameter = maximum_diameter;
+  drop_drag_coefficient = drag_coefficient;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_open_data: end\n");
+#endif
 }
 
 /**
@@ -440,7 +470,7 @@ trajectory_jet_big_drops (Trajectory * t, Air * a)
            d->v[0], d->v[1], d->v[2]);
 #endif
   diameter = d->diameter;
-  d->diameter = MAXIMUM_DROP_DIAMETER;
+  d->diameter = drop_maximum_diameter;
   trajectory_jet_progressive (t, a);
   d->diameter = diameter;
 #if DEBUG_TRAJECTORY
@@ -564,7 +594,7 @@ trajectory_write (Trajectory * t)
 
 /**
  * \fn void trajectory_calculate (Trajectory * t, Air * a, Measurement * m, \
- *   unsigned int n)
+ *   unsigned int n, FILE *file)
  * \brief function to calculate the drop trajectory.
  * \param t
  * \brief Trajectory struct.
@@ -574,9 +604,12 @@ trajectory_write (Trajectory * t)
  * \brief array of Measurement structs.
  * \param n
  * \brief number of Measurement structs.
+ * \param file
+ * \brief results file.
  */
 void
-trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n)
+trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n,
+		              FILE *file)
 {
   double r[3];
   Drop *d;
@@ -587,22 +620,25 @@ trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n)
   fprintf (stderr, "trajectory_calculate: nmeasurements=%u\n", n);
 #endif
   t->t = 0.;
-  trajectory_write (t);
+  if (t->file) trajectory_write (t);
   trajectory_jet (t, a);
   d = t->drop;
   for (dt = t->dt; d->r[2] > t->bed_level || d->v[2] > 0.;)
     {
-      trajectory_write (t);
+      if (t->file) trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (d, a, 1.));
       memcpy (r, d->r, 3 * sizeof (double));
       trajectory_runge_kutta_4 (t, a, 1.);
       for (i = 0; i < n; ++i)
-        measurement_write (m + i, d, r);
+        measurement_write (m + i, d, r, file);
     }
   trajectory_impact_correction (t, a);
-  trajectory_write (t);
-  fclose (t->file);
-  g_free (t->filename);
+  if (t->file)
+    {
+	  trajectory_write (t);
+      fclose (t->file);
+      g_free (t->filename);
+	}
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_calculate: end\n");
 #endif

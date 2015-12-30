@@ -83,6 +83,7 @@ extern unsigned int drop_drag_model;
 extern double drop_velocity;
 extern double drop_horizontal_angle;
 extern double drop_vertical_angle;
+extern double drop_maximum_diameter;
 extern double drop_drag_coefficient;
 extern double (*drag_axis_ratio) (Drop * d, Air * a, double v);
 extern double (*drop_drag) (Drop * d, Air * a, double v);

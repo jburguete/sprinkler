@@ -9,7 +9,7 @@ obj = invert.o jet.o sprinkler.o trajectory.o measurement.o drop.o air.o utils.o
 
 all: $(sprinkler) $(invert) $(drops)
 
-$(sprinkler): main.c $(obj) Makefile
+$(sprinkler): main.c $(obj)
 	$(CC) $(CFLAGS) main.c $(obj) $(LIBS) -o $(sprinkler)
 
 $(drops): drops.c Makefile
@@ -28,13 +28,12 @@ measurement.o: measurement.c measurement.h drop.h air.h utils.h config.h \
 	Makefile
 	$(CC) $(CFLAGS) measurement.c -c -o measurement.o
 
-trajectory.o: trajectory.c trajectory.h measurement.h drop.h air.h utils.h
+trajectory.o: trajectory.c trajectory.h measurement.h drop.h air.h utils.h \
 	config.h Makefile
 	$(CC) $(CFLAGS) trajectory.c -c -o trajectory.o
 
 sprinkler.o: sprinkler.c sprinkler.h measurement.h trajectory.h drop.h air.h \
-	utils.h \
-	config.h Makefile
+	utils.h config.h Makefile
 	$(CC) $(CFLAGS) sprinkler.c -c -o sprinkler.o
 
 jet.o: jet.c jet.h trajectory.h measurement.h drop.h utils.h air.h config.h \

@@ -66,8 +66,8 @@ measurement_init (Measurement * m)
 #endif
   m->xleft = m->x - m->dx;
   m->xright = m->x + m->dx;
-  m->ytop = m->y - m->dy;
-  m->ybottom = m->y + m->dy;
+  m->ybottom = m->y - m->dy;
+  m->ytop = m->y + m->dy;
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_init: end\n");
 #endif
@@ -95,7 +95,6 @@ measurement_error (char *message)
 void
 measurement_open_console (Measurement * m)
 {
-  char buffer[512];
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_open_console: start\n");
 #endif
@@ -109,14 +108,7 @@ measurement_open_console (Measurement * m)
   scanf ("%lf", &(m->dx));
   printf ("Measurement dy: ");
   scanf ("%lf", &(m->dy));
-  do
-    {
-      printf ("Measurement file name: ");
-      scanf ("%512s", buffer);
-      m->file = fopen (buffer, "w");
-    }
-  while (!m->file);
-  m->name = g_strdup (buffer);
+  measurement_init (m);
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_open_console: end\n");
 #endif
@@ -134,7 +126,6 @@ measurement_open_console (Measurement * m)
 int
 measurement_open_xml (Measurement * m, xmlNode * node)
 {
-  xmlChar *buffer;
   int k;
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_open_xml: start\n");
@@ -174,14 +165,7 @@ measurement_open_xml (Measurement * m, xmlNode * node)
       measurement_error (gettext ("bad dy"));
       goto exit_on_error;
     }
-  buffer = xmlGetProp (node, XML_FILE);
-  m->file = fopen ((char *) buffer, "w");
-  if (!m->file)
-    {
-      measurement_error (gettext ("bad file"));
-      goto exit_on_error;
-    }
-  m->name = g_strdup ((char *) buffer);
+  measurement_init (m);
 
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_open_xml: end\n");
@@ -204,9 +188,11 @@ exit_on_error:
  * \brief Drop struct.
  * \param rold
  * \brief old drop position vector.
+ * \param file
+ * \brief results file.
  */
 void
-measurement_write (Measurement * m, Drop * d, double *rold)
+measurement_write (Measurement * m, Drop * d, double *rold, FILE *file)
 {
   double *rnew;
   double x, y, dz;
@@ -215,16 +201,24 @@ measurement_write (Measurement * m, Drop * d, double *rold)
 #endif
   rnew = d->r;
   dz = (rold[2] - m->z) * (rnew[2] - m->z);
-  if (dz < 0.)
+  if (dz > 0.)
     goto outside;
   x = interpolate (m->z, rold[2], rnew[2], rold[0], rnew[0]);
+#if DEBUG_MEASUREMENT
+  fprintf (stderr, "measurement_write: x=%lg xleft=%lg yleft=%lg\n",
+		   x, m->xleft, m->xright);
+#endif
   if (x < m->xleft || x > m->xright)
     goto outside;
   y = interpolate (m->z, rold[2], rnew[2], rold[1], rnew[1]);
-  if (y < m->ytop || y > m->ybottom)
+#if DEBUG_MEASUREMENT
+  fprintf (stderr, "measurement_write: y=%lg ybottom=%lg ytop=%lg\n",
+		   x, m->ybottom, m->ytop);
+#endif
+  if (y < m->ybottom || y > m->ytop)
     goto outside;
-  fprintf (m->file, "%lg %lg %lg %lg\n",
-           d->diameter, d->v[0], d->v[1], d->v[2]);
+  fprintf (file, "%lg %lg %lg %lg %lg %lg %lg\n",
+           m->x, m->y, m->z, d->diameter, d->v[0], d->v[1], d->v[2]);
 
 outside:
 #if DEBUG_MEASUREMENT

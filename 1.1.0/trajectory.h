@@ -70,6 +70,10 @@ void trajectory_init (Trajectory * t, Air * a, gsl_rng * rng);
 void trajectory_error (char *message);
 void trajectory_open_console (Trajectory * t, Air * a, char *name);
 int trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name);
+void trajectory_open_data (Trajectory * t, Air * a, gsl_rng * rng,
+		                   double diameter, unsigned int jet_model,
+						   unsigned int detach_model, unsigned int drag_model,
+						   double maximum_diameter, double drag_coefficient);
 void trajectory_runge_kutta_4 (Trajectory * t, Air * a, double factor);
 void trajectory_jet_null_drag (Trajectory * t, Air * a);
 void trajectory_jet_progressive (Trajectory * t, Air * a);
@@ -78,7 +82,7 @@ void trajectory_impact_correction (Trajectory * t, Air * a);
 void trajectory_initial_correction (Trajectory * t, Air * a);
 void trajectory_write (Trajectory * t);
 void trajectory_calculate (Trajectory * t, Air * a, Measurement * m,
-                           unsigned int n);
+                           unsigned int n, FILE *file);
 void trajectory_invert (Trajectory * t, Air * a);
 
 #endif

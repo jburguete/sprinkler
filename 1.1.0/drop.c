@@ -61,6 +61,7 @@ double drop_vertical_angle;
   ///< vertical angle of the drop initial velocity.
 double drop_drag_coefficient;
   ///< drop drag resistance coefficient for the constant model.
+double drop_maximum_diameter;   ///< maximum diameter of stable drops.
 double (*drop_axis_ratio) (Drop * d, Air * a, double v);
   ///< pointer to the function to calculate the drop axis ratio.
 double (*drop_drag) (Drop * d, Air * a, double v);
@@ -339,7 +340,7 @@ drop_open_xml (Drop * d, Air * a, xmlNode * node)
     drop_detach_model = DROP_DETACH_MODEL_RANDOM;
   else
     {
-      drop_error (gettext ("unknown jet model"));
+      drop_error (gettext ("unknown jet detach model"));
       goto exit_on_error;
     }
   sincos (M_PI / 180. * drop_horizontal_angle, &sh, &ch);

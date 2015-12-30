@@ -49,12 +49,27 @@ typedef struct
   double pressure;              ///< water pressure.
   double vertical_angle;        ///< vertical angle.
   double horizontal_angle;      ///< horizontal angle.
+  double bed_level;             ///< bed level.
   double jet_time;              ///< time of the emitted jet.
   double diameter;              ///< nozzle diameter.
+  double drop_dmax;             ///< maximum drop diameter.
+  double drop_dmin;             ///< minimum drop diameter.
+  double angle_min;             ///< minimum horizontal angle.
+  double angle_max;             ///< maximum horizontal angle.
+  double drag_coefficient;
+    ///< drop drag resistance coefficient for the constant model.
+  double dt;                    ///< numerical time step size.
+  double cfl;                   ///< stability number.
   unsigned int nmeasurements;   ///< number of measurements.
+  unsigned int ntrajectories;   ///< number of drop trajectories.
+  unsigned int jet_model;       ///< jet model type.
+  unsigned int detach_model;    ///< jet detach model type.
+  unsigned int drag_model;      ///< drop drag resistance model.
 } Sprinkler;
 
 void trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s);
+void trajectory_open_with_sprinkler (Trajectory * t, Sprinkler * s, Air * a,
+		                             gsl_rng *rng);
 void sprinkler_error (char *message);
 void sprinkler_open_console (Sprinkler * s);
 int sprinkler_open_xml (Sprinkler * s, xmlNode * node);

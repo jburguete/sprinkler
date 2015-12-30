@@ -42,8 +42,6 @@ OF SUCH DAMAGE.
  */
 typedef struct
 {
-  FILE *file;                   ///< file.
-  char *name;                   ///< file name.
   double x;                     ///< x-coordenate.
   double y;                     ///< y-coordenate.
   double z;                     ///< z-coordenate.
@@ -59,7 +57,7 @@ void measurement_init (Measurement * m);
 void measurement_error (char *message);
 void measurement_open_console (Measurement * m);
 int measurement_open_xml (Measurement * m, xmlNode * node);
-void measurement_write (Measurement * m, Drop * d, double *rold);
+void measurement_write (Measurement * m, Drop * d, double *rold, FILE *file);
 
 #if HAVE_GTK
 
