@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
-<sprinkler pressure="200000" vertical_angle="25" diameter="0.04" @variable1@="@value1@">
+<sprinkler pressure="200000" dt="0.001" cfl="0.1" vertical_angle="26" diameter="0.04" @variable1@="@value1@">
 	<air/>
-	<trajectory dt="0.001" cfl="0.1" file="vyr" bed_level="-10" jet_model="progressive">
+	<trajectory file="vyr" bed_level="-10" jet_model="progressive">
 		<drop diameter="0.008" drag_model="ovoid"/>
 	</trajectory>
 </sprinkler>

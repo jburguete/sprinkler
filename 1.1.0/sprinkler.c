@@ -75,6 +75,7 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
   t->cfl = s->cfl;
   t->dt = s->dt;
   t->bed_level = s->bed_level;
+  t->drop_maximum_diameter = s->drop_dmax;
   d->r[0] = s->x;
   d->r[1] = s->y;
   d->r[2] = s->z;
@@ -263,6 +264,14 @@ sprinkler_open_xml (Sprinkler * s, xmlNode * node)
       sprinkler_error (gettext ("bad CFL number"));
       goto exit_on_error;
     }
+	s->drop_dmax
+	  = xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
+			                             MAXIMUM_DROP_DIAMETER, &k);
+   if (!k)
+     {
+       sprinkler_error (gettext ("bad maximum drop diameter"));
+       goto exit_on_error;
+     }
   s->ntrajectories
     = xml_node_get_uint_with_default (node, XML_DROPS_NUMBER, 0, &k);
   if (!k)
@@ -278,14 +287,6 @@ sprinkler_open_xml (Sprinkler * s, xmlNode * node)
       if (!k)
         {
           sprinkler_error (gettext ("bad minimum drop diameter"));
-          goto exit_on_error;
-        }
-	  s->drop_dmax
-		= xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
-				                           MAXIMUM_DROP_DIAMETER, &k);
-      if (!k)
-        {
-          sprinkler_error (gettext ("bad maximum drop diameter"));
           goto exit_on_error;
         }
 	  s->angle_min

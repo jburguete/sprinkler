@@ -1,0 +1,27 @@
+./sprinkler vyr35-null-drag-6-0.xml vyr35-nd-6-0
+./analyze2 vyr35-nd-8.63-0
+./sprinkler vyr35-null-drag-6-0.075.xml vyr35-nd-6-0.075
+./analyze2 vyr35-nd-6-0.075
+./sprinkler vyr35-null-drag-random-6-0.075.xml vyr35-ndr-6-0.075
+./analyze2 vyr35-ndr-6-0.075
+./sprinkler vyr35-null-drag-random-8-0.016.xml vyr35-ndr-8-0.016
+./analyze2 vyr35-ndr-8-0.016
+./sprinkler vyr35-progressive-6-0.366.xml vyr35-pi-6-0.366
+./analyze2 vyr35-pi-6-0.366
+./sprinkler vyr35-progressive-random-6-0.366.xml vyr35-pir-6-0.366
+./analyze2 vyr35-pir-6-0.366
+./sprinkler vyr35-progressive-random-8-0.071.xml vyr35-pir-8-0.071
+./analyze2 vyr35-pir-8-0.071
+./sprinkler vyr35-big-drops-6-0.366.xml vyr35-bd-6-0.366
+./analyze2 vyr35-bd-6-0.366
+./sprinkler vyr35-big-drops-random-6-0.366.xml vyr35-bdr-6-0.366
+./analyze2 vyr35-bdr-6-0.366
+./sprinkler vyr35-big-drops-random-8-0.071.xml vyr35-bdr-8-0.071
+./analyze2 vyr35-bdr-8-0.071
+./sprinkler vyr35jet-nd.xml vyr35
+./sprinkler vyr35jet-pi.xml vyr35
+./sprinkler vyr35jet-nd-8.63-0.xml vyr35
+./sprinkler vyr35jet-nd-6-0.075.xml vyr35
+./sprinkler vyr35jet-nd-8-0.016.xml vyr35
+./sprinkler vyr35jet-pi-6-0.366.xml vyr35
+./sprinkler vyr35jet-pi-8-0.071.xml vyr35

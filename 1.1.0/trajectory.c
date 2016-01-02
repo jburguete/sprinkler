@@ -176,13 +176,13 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name)
       trajectory_error (gettext ("bad bed level"));
       goto exit_on_error;
     }
-  t->dt = xml_node_get_float (node, XML_DT, &k);
+  t->dt = xml_node_get_float_with_default (node, XML_DT, 0., &k);
   if (!k)
     {
       trajectory_error (gettext ("bad time step size"));
       goto exit_on_error;
     }
-  t->cfl = xml_node_get_float (node, XML_CFL, &k);
+  t->cfl = xml_node_get_float_with_default (node, XML_CFL, 0., &k);
   if (!k)
     {
       trajectory_error (gettext ("bad CFL number"));
@@ -204,7 +204,17 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name)
       else if (!xmlStrcmp (buffer, XML_PROGRESSIVE))
         t->jet_model = TRAJECTORY_JET_MODEL_PROGRESSIVE;
       else if (!xmlStrcmp (buffer, XML_BIG_DROPS))
-        t->jet_model = TRAJECTORY_JET_MODEL_BIG_DROPS;
+		{
+		  t->jet_model = TRAJECTORY_JET_MODEL_BIG_DROPS;
+		  t->drop_maximum_diameter
+			= xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
+					                           MAXIMUM_DROP_DIAMETER, &k); 
+		  if (!k)
+			{
+			  trajectory_error (gettext ("bad maximum drop diameter"));
+			  goto exit_on_error;
+			}
+		}
       else
         {
           trajectory_error (gettext ("unknown jet model"));
@@ -469,9 +479,11 @@ trajectory_jet_big_drops (Trajectory * t, Air * a)
            d->r[0], d->r[1], d->r[2]);
   fprintf (stderr, "trajectory_jet_big_drops: v=(%lg,%lg,%lg)\n",
            d->v[0], d->v[1], d->v[2]);
+  fprintf (stderr, "trajectory_jet_big_drops: d=%lg\n",
+		   t->drop_maximum_diameter);
 #endif
   diameter = d->diameter;
-  d->diameter = drop_maximum_diameter;
+  d->diameter = t->drop_maximum_diameter;
   trajectory_jet_progressive (t, a);
   d->diameter = diameter;
 #if DEBUG_TRAJECTORY

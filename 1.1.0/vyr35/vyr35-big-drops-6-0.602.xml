@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<sprinkler pressure="200000" vertical_angle="26" diameter="0.04" jet_time="0" jet_model="null_drag" drops_number="10000" drag_model="ovoid" minimum_drop_diameter="0.0004" maximum_drop_diameter="0.006" cfl="0.1" dt="0.001" bed_level="-1.4">
+<sprinkler pressure="200000" vertical_angle="26" diameter="0.04" jet_time="0.602" jet_model="big_drops" drops_number="10000" drag_model="ovoid" minimum_drop_diameter="0.0004" maximum_drop_diameter="0.006" cfl="0.1" dt="0.001" bed_level="-1.4">
 	<air/>
 	<measurement x="4.5" z="1.4" dx="0.2" dy="0.2"/>
 	<measurement x="6" z="1.4" dx="0.2" dy="0.2"/>

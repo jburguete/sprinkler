@@ -27,31 +27,44 @@
 #	'Gotas0.txt' w vec lt rgb '#0000FF' t'1mm>D'
 
 set term pos eps enh 12
+set key bottom center
 set size noratio 0.7,0.7
 set xlabel 'x (m)'
 set ylabel 'z (m)'
 set out 'jet-models-b.eps'
-plot [][0:3] \
+plot [][0:2.5] \
 	'trayectoriapiluca2011.csv' u ($1/100):($2/100) t'Measured' w p pt 6,\
 	'vyr35-8.39-0.028-nd' u 2:4 \
 		t'Null drag (D_{max}=8.39 mm, T_{jet}=0.028 s)' w l lt 1,\
 	'vyr35-8.56-0.101-pi' u 2:4 \
 		t'Progressive (D_{max}=8.56 mm, T_{jet}=0.101 s)' w l lt 2,\
-	'vyr35-9.32-b' u 2:4 t'Ballistic (D_{max}=9.32 mm, T_{jet}=0 s)' w l lt 3
+	'vyr35-8.63-b' u 2:4 t'Ballistic (D_{max}=8.63 mm, T_{jet}=0 s)' w l lt 3
 set out 'jet-models.eps'
-plot [][0:3.5] \
+plot [][0:2.5] \
 	'trayectoriapiluca2011.csv' u ($1/100):($2/100) t'Measured' w p pt 6,\
-	'vyr35-6-0.107-nd' u 2:4 \
-		t'Null drag (D_{max}=6.0 mm, T_{jet}=0.107 s)' w l lt 1,\
-	'vyr35-6-0.536-pi' u 2:4 \
-		t'Progressive (D_{max}=6.0 mm, T_{jet}=0.536 s)' w l lt 2,\
-	'vyr35-8-0.040-nd' u 2:4 \
-		t'Null drag (D_{max}=8.0 mm, T_{jet}=0.040 s)' w l lt 3,\
-	'vyr35-8-0.182-pi' u 2:4 \
-		t'Progressive (D_{max}=8.0 mm, T_{jet}=0.182 s)' w l lt 4,\
-	'vyr35-9.32-b' u 2:4 t'Ballistic (D_{max}=9.32 mm, T_{jet}=0 s)' w l lt 5
+	'vyr35-nd-6-0.075' u 2:4 \
+		t'ND (D_{max}=6.0 mm, T_{jet}=0.075 s)' w l lt 1,\
+	'vyr35-pi-6-0.366' u 2:4 \
+		t'PI (D_{max}=6.0 mm, T_{jet}=0.366 s)' w l lt 2,\
+	'vyr35-nd-8-0.016' u 2:4 \
+		t'ND (D_{max}=8.0 mm, T_{jet}=0.016 s)' w l lt 3,\
+	'vyr35-pi-8-0.071' u 2:4 \
+		t'PI (D_{max}=8.0 mm, T_{jet}=0.071 s)' w l lt 4,\
+	'vyr35-nd-8.63-0' u 2:4 t'Ballistic (D_{max}=8.63 mm, T_{jet}=0 s)' w l lt 5
+set out 'jet-models-2.eps'
+plot [][0:2.5] \
+	'trayectoriapiluca2011.csv' u ($1/100):($2/100) t'Measured' w p pt 6,\
+	'vyr35-nd-6-0.122' u 2:4 \
+		t'ND (D_{max}=6.0 mm, T_{jet}=0.122 s)' w l lt 1,\
+	'vyr35-pi-6-0.602' u 2:4 \
+		t'PI (D_{max}=6.0 mm, T_{jet}=0.602 s)' w l lt 2,\
+	'vyr35-nd-8-0.041' u 2:4 \
+		t'ND (D_{max}=8.0 mm, T_{jet}=0.041 s)' w l lt 3,\
+	'vyr35-pi-8-0.187' u 2:4 \
+		t'PI (D_{max}=8.0 mm, T_{jet}=0.187 s)' w l lt 4,\
+	'vyr35-nd-9.07-0' u 2:4 t'Ballistic (D_{max}=9.07 mm, T_{jet}=0 s)' w l lt 5
 
-set key bottom
+set key right
 set size 0.47,0.47
 set out 'drop-d-6.eps'
 plot [0:15][-1:2.5] \
@@ -75,7 +88,7 @@ plot [0:10][-1:2.5] \
 	'vyr35-drop-3-0.45-i' u 2:4 t'D_{eq}=3 mm c_d=0.45' w l lt 4
 
 set key top
-set size ratio 1 0.45,0.6
+set size ratio 1 0.4,0.6
 set xlabel 'D_{max} (mm)'
 set ylabel 'D_{eq} (mm)'
 set out 'DeqDmax.eps'
@@ -102,30 +115,129 @@ set label 1 '4m/s' at 2,3.5 center
 set arrow 1 from 2.5,3.5 to 3.5,3.5
 f(x)=0.4403*x+6.447e-3*x**2-3.969e-3*x**3+8.113e-5*x**4
 set out 'vxz.eps'
-plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
-	'Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
-	'Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
-	'Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
-	'Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
-	'Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
 set out 'vxz-nd-6-0.eps'
-plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
-	'vyr35-null-drag-6-0-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
-	'vyr35-null-drag-6-0-Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
-	'vyr35-null-drag-6-0-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
-	'vyr35-null-drag-6-0-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
-	'vyr35-null-drag-6-0-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set out 'vxz-nd-6-0.107.eps'
-plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
-	'vyr35-null-drag-6-0.107-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
-	'vyr35-null-drag-6-0.107-Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
-	'vyr35-null-drag-6-0.107-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
-	'vyr35-null-drag-6-0.107-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
-	'vyr35-null-drag-6-0.107-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set out 'vxz-pi-6-0.563.eps'
-plot [0:14][-3:4] f(x) w l lt 1 t'Main jet',\
-	'vyr35-progressive-6-0.563-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
-	'vyr35-progressive-6-0.563-Gotas3.txt' w vec lt 1 t'4mm>D_{eq}>3mm',\
-	'vyr35-progressive-6-0.563-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
-	'vyr35-progressive-6-0.563-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
-	'vyr35-progressive-6-0.563-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-nd-6-0-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-nd-6-0-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-nd-6-0-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-nd-6-0-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-nd-6-0-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-nd-6-0.075.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-nd-6-0.075-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-nd-6-0.075-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-nd-6-0.075-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-nd-6-0.075-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-nd-6-0.075-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-ndr-6-0.075.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-ndr-6-0.075-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-ndr-6-0.075-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-ndr-6-0.075-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-ndr-6-0.075-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-ndr-6-0.075-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-ndr-8-0.016.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-ndr-8-0.016-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-ndr-8-0.016-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-ndr-8-0.016-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-ndr-8-0.016-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-ndr-8-0.016-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-pi-6-0.366.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-pi-6-0.366-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-pi-6-0.366-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-pi-6-0.366-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-pi-6-0.366-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-pi-6-0.366-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-pir-6-0.366.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-pir-6-0.366-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-pir-6-0.366-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-pir-6-0.366-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-pir-6-0.366-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-pir-6-0.366-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-pir-8-0.071.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-pir-8-0.071-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-pir-8-0.071-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-pir-8-0.071-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-pir-8-0.071-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-pir-8-0.071-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-bd-6-0.366.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-bd-6-0.366-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-bd-6-0.366-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-bd-6-0.366-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-bd-6-0.366-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-bd-6-0.366-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-bdr-6-0.366.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-bdr-6-0.366-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-bdr-6-0.366-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-bdr-6-0.366-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-bdr-6-0.366-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-bdr-6-0.366-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+set out 'vxz-bdr-8-0.071.eps'
+plot [0:14][-3:4] f(x) w l lt 1 t'Upper trajectories',\
+	'vyr35-bdr-8-0.071-Gotas4.txt' w vec lt 1 t'D_{eq}>4mm',\
+	'vyr35-bdr-8-0.071-Gotas3.txt' w vec lt 2 t'4mm>D_{eq}>3mm',\
+	'vyr35-bdr-8-0.071-Gotas2.txt' w vec lt 3 t'3mm>D_{eq}>2mm',\
+	'vyr35-bdr-8-0.071-Gotas1.txt' w vec lt 4 t'2mm>D_{eq}>1mm',\
+	'vyr35-bdr-8-0.071-Gotas0.txt' w vec lt 5 t'1mm>D_{eq}'
+
+set key bottom
+set size noratio 0.47,0.47
+unset label 1
+unset arrow 1
+set xlabel 'D (mm)'
+set ylabel 'v (m/s)'
+set out 'vd-6-1.4.eps'
+plot [0:6][0:9] \
+	'DatosGotas2.txt' u ($1==1.4?$2==6?$6*1000:1/0:1/0):5 \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==6?$3==1.4?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d
+set out 'vd-9-0.eps'
+plot [0:6][0:9] \
+	'DatosGotas2.txt' u ($1==0?$2==9?$6*1000:1/0:1/0):5 \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==9?$3==0?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d
+set out 'vd-12.5--1.35.eps'
+plot [0:6][0:9] \
+	'DatosGotas2.txt' u ($1==-1.35?$2==12.5?$6*1000:1/0:1/0):5 \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==12.5?$3==-1.35?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d
+set ylabel 'Angle (^{o})'
+set out 'ad-6-1.4.eps'
+plot [0:6][-110:-10] \
+	'DatosGotas2.txt' u ($1==1.4?$2==6?$6*1000:1/0:1/0):(-$3) \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==6?$3==1.4?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d
+set out 'ad-9-0.eps'
+plot [0:6][-110:-10] \
+	'DatosGotas2.txt' u ($1==0?$2==9?$6*1000:1/0:1/0):(-$3) \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==9?$3==0?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d
+set out 'ad-12.5--1.35.eps'
+plot [0:6][-110:-10] \
+	'DatosGotas2.txt' u ($1==-1.35?$2==12.5?$6*1000:1/0:1/0):(-$3) \
+	t'Measured' w p pt 6, \
+	'vyr35-bdr-6-0.366' \
+	u ($1==12.5?$3==-1.35?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
+	t'BD+RD D_{max}=6 mm T_{jet}=0.366 s' w d

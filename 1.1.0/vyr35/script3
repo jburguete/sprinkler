@@ -1,0 +1,5 @@
+make
+./generate
+./sprinkler invert.xml vyr35
+./generate2
+gnuplot plot1

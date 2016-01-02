@@ -61,6 +61,7 @@ typedef struct
   double cfl;                   ///< stability number.
   double bed_level;             ///< bed level.
   double jet_time;              ///< time of the emitted jet.
+  double drop_maximum_diameter; ///< drop maximum diameter.
   unsigned int jet_model;       ///< jet model type.
 } Trajectory;
 
