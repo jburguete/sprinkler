@@ -20,7 +20,7 @@ main (int argn, char **argc)
   double ym[NY] = { -1.35, 0., 0.9, 1.4 };
   double dm[ND] = { 0., 0.001, 0.002, 0.003, 0.004 };
   double vx[NT], vy[NT];
-  double v, angle, x[7];
+  double x[7];
   unsigned int i, j, k, l, n[NT];
   char *filename[ND] = {
     "Gotas0.txt",

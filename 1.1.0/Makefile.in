@@ -6,9 +6,10 @@ EXE = @EXE@
 sprinkler = sprinkler$(EXE)
 drops = drops$(EXE)
 evaluator = evaluator$(EXE)
+evaluator2 = evaluator2$(EXE)
 obj = invert.o jet.o sprinkler.o trajectory.o measurement.o drop.o air.o utils.o
 
-all: $(sprinkler) $(drops) $(evaluator)
+all: $(sprinkler) $(drops) $(evaluator) $(evaluator2)
 
 $(sprinkler): main.c $(obj)
 	$(CC) $(CFLAGS) main.c $(obj) $(LIBS) -o $(sprinkler)
@@ -16,8 +17,11 @@ $(sprinkler): main.c $(obj)
 $(drops): drops.c Makefile
 	$(CC) $(CFLAGS) drops.c $(LIBS) -o $(drops)
 
-$(evaluator): evaluator2.c Makefile
-	$(CC) -Os -Wall evaluator2.c -o $(evaluator)
+$(evaluator): evaluator.c Makefile
+	$(CC) -Os -Wall evaluator.c -o $(evaluator)
+
+$(evaluator2): evaluator2.c Makefile
+	$(CC) -Os -Wall evaluator2.c -o $(evaluator2)
 
 utils.o: utils.c utils.h config.h Makefile
 	$(CC) $(CFLAGS) utils.c -c -o utils.o
