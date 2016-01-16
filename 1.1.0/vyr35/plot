@@ -140,7 +140,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-nd-6-0.075-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-nd-6-0.075-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-nd-6-0.075-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated ND+RD D_{MAX}=6 mm t_{jet}=0.075 s'
+set title 'Simulated ND+RD D_{MAX}=6 mm t_{max}=0.075 s'
 set out 'vxz-ndr-6-0.075.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-ndr-6-0.075-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -148,7 +148,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-ndr-6-0.075-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-ndr-6-0.075-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-ndr-6-0.075-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated ND+RD D_{MAX}=8 mm t_{jet}=0.016 s'
+set title 'Simulated ND+RD D_{MAX}=8 mm t_{max}=0.016 s'
 set out 'vxz-ndr-8-0.016.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-ndr-8-0.016-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -164,7 +164,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-pi-6-0.366-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-pi-6-0.366-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-pi-6-0.366-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated PI+RD D_{MAX}=6 mm t_{jet}=0.366 s'
+set title 'Simulated PI+RD D_{MAX}=6 mm t_{max}=0.366 s'
 set out 'vxz-pir-6-0.366.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-pir-6-0.366-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -172,7 +172,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-pir-6-0.366-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-pir-6-0.366-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-pir-6-0.366-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated PI+RD D_{MAX}=8 mm t_{jet}=0.071 s'
+set title 'Simulated PI+RD D_{MAX}=8 mm t_{max}=0.071 s'
 set out 'vxz-pir-8-0.071.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-pir-8-0.071-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -188,7 +188,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-bd-6-0.366-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-bd-6-0.366-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-bd-6-0.366-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated BD+RD D_{MAX}=6 mm t_{jet}=0.366 s'
+set title 'Simulated BD+RD D_{MAX}=6 mm t_{max}=0.366 s'
 set out 'vxz-bdr-6-0.366.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-bdr-6-0.366-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -196,7 +196,7 @@ plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-bdr-6-0.366-Gotas2.txt' w vec lt 2 t'3mm>D_{eq}>2mm',\
 	'vyr35-bdr-6-0.366-Gotas1.txt' w vec lt 3 t'2mm>D_{eq}>1mm',\
 	'vyr35-bdr-6-0.366-Gotas0.txt' w vec lt 4 t'1mm>D_{eq}'
-set title 'Simulated BD+RD D_{MAX}=8 mm t_{jet}=0.071 s'
+set title 'Simulated BD+RD D_{MAX}=8 mm t_{max}=0.071 s'
 set out 'vxz-bdr-8-0.071.eps'
 plot [0:14][-3:4] f(x) w l lt 3 t'Highest trajectories',\
 	'vyr35-bdr-8-0.071-Gotas4.txt' w vec lt 5 t'D_{eq}>4mm',\
@@ -227,7 +227,7 @@ plot [0:6][0:9] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==6?$3==1.4?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=7.5 \261 0.2 m, z=0.9 m'
 set out 'vd-7.5-0.9.eps'
 plot [0:6][0:9] \
@@ -235,7 +235,7 @@ plot [0:6][0:9] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==7.5?$3==0.9?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=9 \261 0.2 m, z=0 m'
 set out 'vd-9-0.eps'
 plot [0:6][0:9] \
@@ -243,7 +243,7 @@ plot [0:6][0:9] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==9?$3==0?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=12.5 \261 0.2 m z=-1.35 m'
 set out 'vd-12.5--1.35.eps'
 plot [0:6][0:9] \
@@ -251,7 +251,7 @@ plot [0:6][0:9] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==12.5?$3==-1.35?$4*1000:1/0:1/0):(sqrt($5*$5+$7*$7)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set ylabel 'Angle (^{o})'
 set title 'x=6 \261 0.2 m, z=1.4 m'
 set out 'ad-6-1.4.eps'
@@ -260,7 +260,7 @@ plot [0:6][-110:-10] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==6?$3==1.4?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=7.5 \261 0.2 m, z=0.9 m'
 set out 'ad-7.5-0.9.eps'
 plot [0:6][-110:-10] \
@@ -268,7 +268,7 @@ plot [0:6][-110:-10] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==7.5?$3==0.9?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=9 \261 0.2 m, z=0 m'
 set out 'ad-9-0.eps'
 plot [0:6][-110:-10] \
@@ -276,7 +276,7 @@ plot [0:6][-110:-10] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==9?$3==0?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
 set title 'x=12.5 \261 0.2 m, z=-1.35 m'
 set out 'ad-12.5--1.35.eps'
 plot [0:6][-110:-10] \
@@ -284,4 +284,4 @@ plot [0:6][-110:-10] \
 	t'Measured' w p pt 6, \
 	'vyr35-bdr-6-0.366' \
 	u ($1==12.5?$3==-1.35?$4*1000:1/0:1/0):(180/pi*atan($7/$5)) \
-	t'Simulated' w p pt 7 ps 0.4
+	t'BD+RD D_{MAX}=6 mm' w p pt 7 ps 0.4
