@@ -51,7 +51,7 @@ OF SUCH DAMAGE.
 #include "measurement.h"
 #include "trajectory.h"
 
-#define DEBUG_TRAJECTORY 1      ///< macro to debug trajectory functions.
+#define DEBUG_TRAJECTORY 0      ///< macro to debug trajectory functions.
 
 void (*trajectory_jet) (Trajectory * t, Air * a);
   ///< pointer to the function to calculate the movement into the jet.
@@ -204,17 +204,17 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name)
       else if (!xmlStrcmp (buffer, XML_PROGRESSIVE))
         t->jet_model = TRAJECTORY_JET_MODEL_PROGRESSIVE;
       else if (!xmlStrcmp (buffer, XML_BIG_DROPS))
-		{
-		  t->jet_model = TRAJECTORY_JET_MODEL_BIG_DROPS;
-		  t->drop_maximum_diameter
-			= xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
-					                           MAXIMUM_DROP_DIAMETER, &k); 
-		  if (!k)
-			{
-			  trajectory_error (gettext ("bad maximum drop diameter"));
-			  goto exit_on_error;
-			}
-		}
+        {
+          t->jet_model = TRAJECTORY_JET_MODEL_BIG_DROPS;
+          t->drop_maximum_diameter
+            = xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
+                                               MAXIMUM_DROP_DIAMETER, &k);
+          if (!k)
+            {
+              trajectory_error (gettext ("bad maximum drop diameter"));
+              goto exit_on_error;
+            }
+        }
       else
         {
           trajectory_error (gettext ("unknown jet model"));
@@ -284,9 +284,9 @@ exit_on_error:
  */
 void
 trajectory_open_data (Trajectory * t, Air * a, gsl_rng * rng, double diameter,
-		              unsigned int jet_model, unsigned int detach_model,
-					  unsigned int drag_model, double maximum_diameter,
-					  double drag_coefficient)
+                      unsigned int jet_model, unsigned int detach_model,
+                      unsigned int drag_model, double maximum_diameter,
+                      double drag_coefficient)
 {
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_open_data: start\n");
@@ -440,7 +440,7 @@ trajectory_jet_progressive (Trajectory * t, Air * a)
   for (dt = t->dt; t->t < d->jet_time; t->t += t->dt)
     {
       if (t->file)
-		trajectory_write (t);
+        trajectory_write (t);
       factor = 0.1 + 0.9 * t->t / t->jet_time;
       t->dt = fmin (dt, t->cfl / drop_move (d, a, factor));
       trajectory_runge_kutta_4 (t, a, factor);
@@ -480,7 +480,7 @@ trajectory_jet_big_drops (Trajectory * t, Air * a)
   fprintf (stderr, "trajectory_jet_big_drops: v=(%lg,%lg,%lg)\n",
            d->v[0], d->v[1], d->v[2]);
   fprintf (stderr, "trajectory_jet_big_drops: d=%lg\n",
-		   t->drop_maximum_diameter);
+           t->drop_maximum_diameter);
 #endif
   diameter = d->diameter;
   d->diameter = t->drop_maximum_diameter;
@@ -622,7 +622,7 @@ trajectory_write (Trajectory * t)
  */
 void
 trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n,
-		              FILE *file)
+                      FILE * file)
 {
   double r[3];
   Drop *d;
@@ -634,12 +634,13 @@ trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n,
 #endif
   t->t = 0.;
   if (t->file)
-	trajectory_write (t);
+    trajectory_write (t);
   trajectory_jet (t, a);
   d = t->drop;
   for (dt = t->dt; d->r[2] > t->bed_level || d->v[2] > 0.;)
     {
-      if (t->file) trajectory_write (t);
+      if (t->file)
+        trajectory_write (t);
       t->dt = fmin (dt, t->cfl / drop_move (d, a, 1.));
       memcpy (r, d->r, 3 * sizeof (double));
       trajectory_runge_kutta_4 (t, a, 1.);
@@ -649,10 +650,10 @@ trajectory_calculate (Trajectory * t, Air * a, Measurement * m, unsigned int n,
   trajectory_impact_correction (t, a);
   if (t->file)
     {
-	  trajectory_write (t);
+      trajectory_write (t);
       fclose (t->file);
       g_free (t->filename);
-	}
+    }
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_calculate: end\n");
 #endif
@@ -721,13 +722,13 @@ trajectory_run_xml (Trajectory * t, Air * a, xmlNode * node, char *result)
   if (!air_open_xml (a, node))
     goto exit_on_error;
   for (node = node->next; node; node = node->next)
-	{
+    {
       if (!trajectory_open_xml (t, a, node, result))
         goto exit_on_error;
       trajectory_init (t, a, rng);
       air_wind_uncertainty (a, rng);
       trajectory_calculate (t, a, NULL, 0, t->file);
-	}
+    }
   gsl_rng_free (rng);
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_run_xml: end\n");

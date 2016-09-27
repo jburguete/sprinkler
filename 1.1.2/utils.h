@@ -50,8 +50,8 @@ double xml_node_get_float (xmlNode * node, const xmlChar * prop,
 double xml_node_get_float_with_default (xmlNode * node, const xmlChar * prop,
                                         double default_value, int *error_code);
 unsigned int xml_node_get_uint_with_default (xmlNode * node,
-		                                     const xmlChar * prop,
+                                             const xmlChar * prop,
                                              unsigned int default_value,
-											 int *error_code);
+                                             int *error_code);
 
 #endif

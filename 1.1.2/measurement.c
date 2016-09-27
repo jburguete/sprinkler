@@ -192,7 +192,7 @@ exit_on_error:
  * \brief results file.
  */
 void
-measurement_write (Measurement * m, Drop * d, double *rold, FILE *file)
+measurement_write (Measurement * m, Drop * d, double *rold, FILE * file)
 {
   double *rnew;
   double x, y, dz;
@@ -206,14 +206,14 @@ measurement_write (Measurement * m, Drop * d, double *rold, FILE *file)
   x = interpolate (m->z, rold[2], rnew[2], rold[0], rnew[0]);
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_write: x=%lg xleft=%lg yleft=%lg\n",
-		   x, m->xleft, m->xright);
+           x, m->xleft, m->xright);
 #endif
   if (x < m->xleft || x > m->xright)
     goto outside;
   y = interpolate (m->z, rold[2], rnew[2], rold[1], rnew[1]);
 #if DEBUG_MEASUREMENT
   fprintf (stderr, "measurement_write: y=%lg ybottom=%lg ytop=%lg\n",
-		   x, m->ybottom, m->ytop);
+           x, m->ybottom, m->ytop);
 #endif
   if (y < m->ybottom || y > m->ytop)
     goto outside;

@@ -87,13 +87,13 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
   d->v[2] = v * sin (k3);
 #if DEBUG_SPRINKLER
   fprintf (stderr, "trajectory_init_with_sprinkler: Time step size=%le\n",
-		   t->dt);
+           t->dt);
   fprintf (stderr, "trajectory_init_with_sprinkler: Water pressure=%le "
-		   "Drop density=%le\n", s->pressure, d->density);
+           "Drop density=%le\n", s->pressure, d->density);
   fprintf (stderr, "trajectory_init_with_sprinkler: "
-		   "Drop velocity=(%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
+           "Drop velocity=(%le,%le,%le)\n", d->v[0], d->v[1], d->v[2]);
   fprintf (stderr, "trajectory_init_with_sprinkler: Jet time=%lg\n",
-		   t->jet_time);
+           t->jet_time);
   fprintf (stderr, "trajectory_init_with_sprinkler: end\n");
 #endif
 }
@@ -113,7 +113,7 @@ trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s)
  */
 void
 trajectory_open_with_sprinkler (Trajectory * t, Sprinkler * s, Air * a,
-		                        gsl_rng *rng)
+                                gsl_rng * rng)
 {
   double diameter;
 #if DEBUG_SPRINKLER
@@ -124,7 +124,7 @@ trajectory_open_with_sprinkler (Trajectory * t, Sprinkler * s, Air * a,
   s->horizontal_angle
     = s->angle_min + (s->angle_max - s->angle_min) * gsl_rng_uniform (rng);
   trajectory_open_data (t, a, rng, diameter, s->jet_model, s->detach_model,
-		                s->drag_model, s->drag_coefficient, s->drop_dmax);
+                        s->drag_model, s->drag_coefficient, s->drop_dmax);
 #if DEBUG_SPRINKLER
   fprintf (stderr, "trajectory_open_with_sprinkler: end\n");
 #endif
@@ -264,14 +264,14 @@ sprinkler_open_xml (Sprinkler * s, xmlNode * node)
       sprinkler_error (gettext ("bad CFL number"));
       goto exit_on_error;
     }
-	s->drop_dmax
-	  = xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
-			                             MAXIMUM_DROP_DIAMETER, &k);
-   if (!k)
-     {
-       sprinkler_error (gettext ("bad maximum drop diameter"));
-       goto exit_on_error;
-     }
+  s->drop_dmax
+    = xml_node_get_float_with_default (node, XML_MAXIMUM_DROP_DIAMETER,
+                                       MAXIMUM_DROP_DIAMETER, &k);
+  if (!k)
+    {
+      sprinkler_error (gettext ("bad maximum drop diameter"));
+      goto exit_on_error;
+    }
   s->ntrajectories
     = xml_node_get_uint_with_default (node, XML_DROPS_NUMBER, 0, &k);
   if (!k)
@@ -280,24 +280,24 @@ sprinkler_open_xml (Sprinkler * s, xmlNode * node)
       goto exit_on_error;
     }
   if (s->ntrajectories)
-	{
-	  s->drop_dmin
-		= xml_node_get_float_with_default (node, XML_MINIMUM_DROP_DIAMETER,
-				                           MINIMUM_DROP_DIAMETER, &k);
+    {
+      s->drop_dmin
+        = xml_node_get_float_with_default (node, XML_MINIMUM_DROP_DIAMETER,
+                                           MINIMUM_DROP_DIAMETER, &k);
       if (!k)
         {
           sprinkler_error (gettext ("bad minimum drop diameter"));
           goto exit_on_error;
         }
-	  s->angle_min
-		= xml_node_get_float_with_default (node, XML_MINIMUM_ANGLE, 0., &k);
+      s->angle_min
+        = xml_node_get_float_with_default (node, XML_MINIMUM_ANGLE, 0., &k);
       if (!k)
         {
           sprinkler_error (gettext ("bad minimum angle"));
           goto exit_on_error;
         }
-	  s->angle_max
-		= xml_node_get_float_with_default (node, XML_MAXIMUM_ANGLE, 0., &k);
+      s->angle_max
+        = xml_node_get_float_with_default (node, XML_MAXIMUM_ANGLE, 0., &k);
       if (!k)
         {
           sprinkler_error (gettext ("bad maximum angle"));
@@ -451,17 +451,17 @@ sprinkler_run_xml (Sprinkler * s, Air * a, Trajectory * t, xmlNode * node,
         = g_realloc (s->measurement,
                      (s->nmeasurements + 1) * sizeof (Measurement));
       memcpy (s->measurement + s->nmeasurements, m, sizeof (Measurement));
-	  ++s->nmeasurements;
+      ++s->nmeasurements;
     }
   if (s->nmeasurements)
-	{
+    {
       file = fopen (result, "w");
-	  if (!file)
+      if (!file)
         {
-		  sprinkler_error (gettext ("unable to open the measurements file"));
-		  goto exit_on_error;
-		}
-	}
+          sprinkler_error (gettext ("unable to open the measurements file"));
+          goto exit_on_error;
+        }
+    }
   for (; node; node = node->next)
     {
       if (!trajectory_open_xml (t, a, node, result))
@@ -473,9 +473,9 @@ sprinkler_run_xml (Sprinkler * s, Air * a, Trajectory * t, xmlNode * node,
       trajectory_calculate (t, a, s->measurement, s->nmeasurements, file);
     }
   for (i = 0; i < s->ntrajectories; ++i)
-	{
+    {
 #if DEBUG_SPRINKLER
-  fprintf (stderr, "sprinkler_run_xml: trajectory=%u\n", i);
+      fprintf (stderr, "sprinkler_run_xml: trajectory=%u\n", i);
 #endif
       trajectory_open_with_sprinkler (t, s, a, rng);
       t->jet_time = s->jet_time;
@@ -485,7 +485,7 @@ sprinkler_run_xml (Sprinkler * s, Air * a, Trajectory * t, xmlNode * node,
       trajectory_calculate (t, a, s->measurement, s->nmeasurements, file);
     }
   if (file)
-	fclose (file);
+    fclose (file);
   gsl_rng_free (rng);
 #if DEBUG_SPRINKLER
   fprintf (stderr, "sprinkler_run_xml: end\n");

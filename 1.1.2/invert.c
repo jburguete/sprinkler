@@ -76,7 +76,7 @@ invert_run_xml (xmlNode * node, Air * a, Trajectory * t, Jet * j, char *result)
     {
       if (!trajectory_open_xml (t, a, node, result))
         goto exit_on_error;
-	  trajectory_init (t, a, rng);
+      trajectory_init (t, a, rng);
       air_wind_uncertainty (a, rng);
       //drop_print_parabolic (t->drop);
       trajectory_invert_with_jet (t, a, j);

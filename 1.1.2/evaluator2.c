@@ -16,4 +16,3 @@ main (int argn, char **argc)
   fprintf (file, "%.14le", e * e);
   fclose (file);
 }
-

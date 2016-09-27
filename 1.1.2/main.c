@@ -98,31 +98,34 @@ main (int argn, char **argc)
       show_error ();
       return 3;
     }
-  if (!xmlStrcmp (node->name, XML_INVERT)
-      && !invert_run_xml (node, air, trajectory, jet, argc[2]))
+  if (!xmlStrcmp (node->name, XML_INVERT))
     {
+      if (invert_run_xml (node, air, trajectory, jet, argc[2]))
+        return 0;
       show_error ();
       return 3;
     }
-  else if (!xmlStrcmp (node->name, XML_SPRINKLER)
-           && !sprinkler_run_xml (sprinkler, air, trajectory, node, argc[2]))
+  else if (!xmlStrcmp (node->name, XML_SPRINKLER))
     {
+      if (sprinkler_run_xml (sprinkler, air, trajectory, node, argc[2]))
+        return 0;
       show_error ();
       return 4;
     }
-  else if (!xmlStrcmp (node->name, XML_TRAJECTORY)
-		   && !trajectory_run_xml (trajectory, air, node, argc[2]))
-	{
+  else if (!xmlStrcmp (node->name, XML_TRAJECTORY))
+    {
+      if (trajectory_run_xml (trajectory, air, node, argc[2]))
+        return 0;
       show_error ();
       return 5;
-	}
+    }
   else
-	{
+    {
       error_message = g_strconcat (gettext ("Input file"), ": ",
-			                       gettext ("Bad node"), NULL);
-	  show_error ();
-	  return 6;
-	}
-		  
+                                   gettext ("Bad node"), NULL);
+      show_error ();
+      return 6;
+    }
+
   return 0;
 }

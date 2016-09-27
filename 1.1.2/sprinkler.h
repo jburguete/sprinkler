@@ -57,7 +57,7 @@ typedef struct
   double angle_min;             ///< minimum horizontal angle.
   double angle_max;             ///< maximum horizontal angle.
   double drag_coefficient;
-    ///< drop drag resistance coefficient for the constant model.
+  ///< drop drag resistance coefficient for the constant model.
   double dt;                    ///< numerical time step size.
   double cfl;                   ///< stability number.
   unsigned int nmeasurements;   ///< number of measurements.
@@ -69,7 +69,7 @@ typedef struct
 
 void trajectory_init_with_sprinkler (Trajectory * t, Sprinkler * s);
 void trajectory_open_with_sprinkler (Trajectory * t, Sprinkler * s, Air * a,
-		                             gsl_rng *rng);
+                                     gsl_rng * rng);
 void sprinkler_error (char *message);
 void sprinkler_open_console (Sprinkler * s);
 int sprinkler_open_xml (Sprinkler * s, xmlNode * node);
