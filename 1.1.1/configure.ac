@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([drops], [1.1.0], [https://github.com/jburguete/drops])
+AC_INIT([drops], [1.1.1], [https://github.com/jburguete/drops])
 
 # Checks for operative systems
 AC_CANONICAL_SYSTEM

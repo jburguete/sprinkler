@@ -52,7 +52,7 @@ OF SUCH DAMAGE.
 #include "trajectory.h"
 #include "sprinkler.h"
 
-#define DEBUG_SPRINKLER 0       ///< macro to debug sprinkler functions.
+#define DEBUG_SPRINKLER 1       ///< macro to debug sprinkler functions.
 
 /**
  * \fn void trajectory_init_with_sprinkler (Trajectory *t, Sprinkler *s)
@@ -407,11 +407,9 @@ sprinkler_run_console (Sprinkler * s, Air * a, Trajectory * t, char *result)
 }
 
 /**
- * \fn int sprinkler_run_xml (Sprinkler * s, Air * a, Drop * d, \
- *   Trajectory * t, xmlNode * node, char *result)
+ * \fn int sprinkler_run_xml (Sprinkler * s, Air * a, Trajectory * t, \
+ *   xmlNode * node, char *result)
  * \brief function to run the simulation open all data in a XML file.
- * \param name
- * \brief file name.
  * \param s
  * \brief sprinkler struct.
  * \param a

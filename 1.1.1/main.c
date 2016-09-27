@@ -110,5 +110,19 @@ main (int argn, char **argc)
       show_error ();
       return 4;
     }
+  else if (!xmlStrcmp (node->name, XML_TRAJECTORY)
+		   && !trajectory_run_xml (trajectory, air, node, argc[2]))
+	{
+      show_error ();
+      return 5;
+	}
+  else
+	{
+      error_message = g_strconcat (gettext ("Input file"), ": ",
+			                       gettext ("Bad node"), NULL);
+	  show_error ();
+	  return 6;
+	}
+		  
   return 0;
 }

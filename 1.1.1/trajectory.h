@@ -85,5 +85,6 @@ void trajectory_write (Trajectory * t);
 void trajectory_calculate (Trajectory * t, Air * a, Measurement * m,
                            unsigned int n, FILE *file);
 void trajectory_invert (Trajectory * t, Air * a);
+int trajectory_run_xml (Trajectory * t, Air * a, xmlNode * node, char *result);
 
 #endif

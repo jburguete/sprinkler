@@ -163,7 +163,7 @@ air_open_console (Air * a)
 #endif
   printf ("Wind velocity (m/s): ");
   scanf ("%lf", &air_velocity);
-  printf ("Wind angle (m/s): ");
+  printf ("Wind angle (º): ");
   scanf ("%lf", &air_angle);
   printf ("Air temperature (Celsius): ");
   scanf ("%lf", &air_temperature);

@@ -30,7 +30,7 @@
  */
 typedef struct
 {
-        /**
+    /**
 	 * \var sprinkler_height
 	 * \brief Sprinkler height.
 	 * \var sprinkler_pressure

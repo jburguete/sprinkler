@@ -47,6 +47,8 @@ OF SUCH DAMAGE.
 #define AIR_HUMIDITY 100.       ///< saturated relative humidity.
 #define AIR_PRESSURE 101325.    ///< atmospheric pressure.
 #define AIR_TEMPERATURE 20.     ///< normal atmospheric temperature in Celsius.
+#define CFL 0.01                ///< stability CFL number.
+#define DT 0.001                ///< time step size.
 #define MAXIMUM_DROP_DIAMETER 0.0080    ///< maximum diameter of stable drops.
 #define MINIMUM_DROP_DIAMETER 0.0004    ///< minimum diameter of emitted drops.
 #define RANDOM_SEED 7007        ///< pseudo-random numbers generator seed.

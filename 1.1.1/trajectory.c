@@ -51,7 +51,7 @@ OF SUCH DAMAGE.
 #include "measurement.h"
 #include "trajectory.h"
 
-#define DEBUG_TRAJECTORY 0      ///< macro to debug trajectory functions.
+#define DEBUG_TRAJECTORY 1      ///< macro to debug trajectory functions.
 
 void (*trajectory_jet) (Trajectory * t, Air * a);
   ///< pointer to the function to calculate the movement into the jet.
@@ -176,13 +176,13 @@ trajectory_open_xml (Trajectory * t, Air * a, xmlNode * node, char *name)
       trajectory_error (gettext ("bad bed level"));
       goto exit_on_error;
     }
-  t->dt = xml_node_get_float_with_default (node, XML_DT, 0., &k);
+  t->dt = xml_node_get_float_with_default (node, XML_DT, DT, &k);
   if (!k)
     {
       trajectory_error (gettext ("bad time step size"));
       goto exit_on_error;
     }
-  t->cfl = xml_node_get_float_with_default (node, XML_CFL, 0., &k);
+  t->cfl = xml_node_get_float_with_default (node, XML_CFL, CFL, &k);
   if (!k)
     {
       trajectory_error (gettext ("bad CFL number"));
@@ -692,4 +692,53 @@ trajectory_invert (Trajectory * t, Air * a)
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_invert: end\n");
 #endif
+}
+
+/**
+ * \fn int trajectory_run_xml (Trajectory * t, Air * a, xmlNode * node, \
+ *   char *result)
+ * \brief function to run the simulation open all data in a XML file.
+ * \param t.
+ * \brief Trajectory struct.
+ * \param a
+ * \brief Air struct.
+ * \param node
+ * \brief XML node.
+ * \param result
+ * \brief result file name.
+ * \return 1 on success, 0 on error.
+ */
+int
+trajectory_run_xml (Trajectory * t, Air * a, xmlNode * node, char *result)
+{
+  gsl_rng *rng;
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_run_xml: start\n");
+#endif
+  rng = gsl_rng_alloc (gsl_rng_taus);
+  gsl_rng_set (rng, RANDOM_SEED);
+  node = node->children;
+  if (!air_open_xml (a, node))
+    goto exit_on_error;
+  for (node = node->next; node; node = node->next)
+	{
+      if (!trajectory_open_xml (t, a, node, result))
+        goto exit_on_error;
+      trajectory_init (t, a, rng);
+      air_wind_uncertainty (a, rng);
+      trajectory_calculate (t, a, NULL, 0, t->file);
+	}
+  gsl_rng_free (rng);
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_run_xml: end\n");
+#endif
+  return 1;
+
+exit_on_error:
+  show_error ();
+  gsl_rng_free (rng);
+#if DEBUG_TRAJECTORY
+  fprintf (stderr, "trajectory_run_xml: end\n");
+#endif
+  return 0;
 }

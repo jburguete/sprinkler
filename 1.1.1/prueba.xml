@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<trajectory>
+	<air temperature="8.5"/>
+	<trajectory file="p1">
+		<drop x="1.02" z="0.25" velocity="20.14" angle="21.38" diameter="0.0020" drag_model="ovoid"/>
+	</trajectory>
+	<trajectory file="p2">
+		<drop x="1.02" z="0.25" velocity="20.14" angle="21.38" diameter="0.0020" drag_model="ovoid"/>
+	</trajectory>
+</trajectory>
