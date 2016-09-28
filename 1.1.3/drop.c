@@ -185,9 +185,11 @@ drop_init (Drop * d, Air * a, gsl_rng * rng)
     {
     case DROP_DRAG_MODEL_CONSTANT:
       drop_drag = drop_drag_constant;
+	  d->axis_ratio = 1.;
       break;
     case DROP_DRAG_MODEL_SPHERE:
       drop_drag = drop_drag_sphere;
+	  d->axis_ratio = 1.;
       break;
     default:
       drop_axis_ratio = drop_axis_ratio_Burguete;

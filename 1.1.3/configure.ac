@@ -1,5 +1,5 @@
 AC_PREREQ([2.67])
-AC_INIT([drops], [1.1.2], [https://github.com/jburguete/drops])
+AC_INIT([drops], [1.1.3], [https://github.com/jburguete/drops])
 
 # Checks for operative systems
 AC_CANONICAL_SYSTEM
@@ -58,7 +58,8 @@ AC_SEARCH_LIBS([sqrt], [m])
 PKG_CHECK_MODULES([XML], [libxml-2.0])
 PKG_CHECK_MODULES([GLIB], [glib-2.0])
 PKG_CHECK_MODULES([GSL], [gsl])
-PKG_CHECK_MODULES([GTK], [gtk+-3.0])
+PKG_CHECK_MODULES([GTK], [gtk+-3.0], [AC_MSG_NOTICE([With GTK])],
+	[AC_MSG_NOTICE([Without GTK])])
 
 # Checks for header files
 AC_CHECK_HEADERS([stdlib.h])

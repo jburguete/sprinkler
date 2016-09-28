@@ -599,7 +599,7 @@ trajectory_write (Trajectory * t)
   d = t->drop;
   fprintf (t->file, "%lg %lg %lg %lg %lg %lg %lg %lg %lg\n",
            t->t, d->r[0], d->r[1], d->r[2], d->v[0], d->v[1], d->v[2],
-           -d->drag, d->diameter);
+           d->axis_ratio, d->diameter);
 #if DEBUG_TRAJECTORY
   fprintf (stderr, "trajectory_write: end\n");
 #endif
