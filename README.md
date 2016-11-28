@@ -39,18 +39,20 @@ DragonFly BSD 4.6
 _________________
 Dyson Illumos
 _____________
-Fedora Linux 23
+Fedora Linux 25
 _______________
-FreeBSD 10.2
+FreeBSD 11.0
 ____________
 Linux Mint DE 2
 _______________
 NetBSD 7.0
 __________
-OpenSUSE Linux 13
-_________________
-Ubuntu Linux 12, 14, and 15
-___________________________
+OpenIndiana Hipster
+___________________
+OpenSUSE Linux Tumbleweed
+_________________________
+Ubuntu Linux 16.10
+__________________
 
 1. Download this repository:
 > $ git clone https://github.com/jburguete/sprinkler.git
@@ -58,7 +60,7 @@ ___________________________
 2. Build doing on a terminal:
 > $ ./build
 
-OpenBSD 5.8
+OpenBSD 6.0
 ___________
 
 1. Select adequate versions:
@@ -69,6 +71,8 @@ ___________
 Microsoft Windows 7 (with MSYS2)
 ________________________________
 Microsoft Windows 8.1 (with MSYS2)
+__________________________________
+Microsoft Windows 10 (with MSYS2)
 __________________________________
 
 1. Install [MSYS2](http://sourceforge.net/projects/msys2) and the required
